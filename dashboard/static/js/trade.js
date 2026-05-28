@@ -19,11 +19,35 @@ function buildTradeDetailPanel() {
     exitTime  ? `Closed ${exitTime}` : null,
   ].filter(Boolean).join(" · ");
 
+  const exitType  = session?.exit_type  ?? null;
+  const capPct    = session?.capture_pct ?? null;
+  const dteAtExit = session?.dte_at_exit ?? null;
+
+  const EXIT_LABELS = {
+    held_to_expiry: { label: "Held to Expiry",     cls: "exit-held"   },
+    profit_booked:  { label: "Profit Booked",       cls: "exit-profit" },
+    rolled:         { label: "Rolled / Adjusted",   cls: "exit-rolled" },
+    early_exit:     { label: "Early Exit",          cls: "exit-early"  },
+  };
+  const exitMeta  = exitType ? EXIT_LABELS[exitType] : null;
+  const exitBadge = exitMeta
+    ? el("span", { class: `exit-type-badge ${exitMeta.cls}` }, exitMeta.label)
+    : null;
+  const capBadge  = capPct != null
+    ? el("span", { class: "exit-capture-pct" }, `${capPct >= 0 ? "+" : ""}${capPct}% captured`)
+    : null;
+  const dteBadge  = dteAtExit != null && dteAtExit > 0
+    ? el("span", { class: "exit-dte-badge" }, `${dteAtExit}d before expiry`)
+    : null;
+
   const header = el("div", { class: "panel-header" },
     el("div", { class: "flex items-center gap-8" },
       el("span", { class: "panel-title" }, fmtDate(state.selectedDate)),
       expiry   ? el("span", { class: "detail-expiry" }, `Expiry: ${fmtDate(expiry)}`) : null,
-      timeInfo ? el("span", { class: "detail-session-times" }, timeInfo) : null
+      timeInfo ? el("span", { class: "detail-session-times" }, timeInfo) : null,
+      exitBadge,
+      capBadge,
+      dteBadge
     ),
     el("div", { class: "detail-header-right" },
       el("span", {

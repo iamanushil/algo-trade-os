@@ -146,6 +146,45 @@ function renderSignalData(section, d) {
     `;
   }
 
+  let exitPlanHTML = "";
+  if (hasSpread) {
+    const maxP = ss.max_profit;
+    const t50  = maxP != null ? `+${fmtR(maxP * 0.50)}` : "50% of premium received";
+    const t70  = maxP != null ? `+${fmtR(maxP * 0.70)}` : "70% of premium received";
+    const shortStrikeStr = ss.short_strike.toLocaleString("en-IN");
+    exitPlanHTML = `
+      <div class="signal-section-label">Exit Plan</div>
+      <div class="exit-plan-card signal-exit-plan">
+        <div class="exit-plan-rules">
+          <div class="exit-plan-rule">
+            <span class="exit-rule-icon profit">✓</span>
+            <div class="exit-rule-body">
+              <span class="exit-rule-label">Profit target</span>
+              <span class="exit-rule-value green">${t50}</span>
+              <span class="exit-rule-note">50% of max premium captured · or hold to 70% (${t70})</span>
+            </div>
+          </div>
+          <div class="exit-plan-rule">
+            <span class="exit-rule-icon stop">✗</span>
+            <div class="exit-rule-body">
+              <span class="exit-rule-label">Stop loss</span>
+              <span class="exit-rule-value red">NIFTY > ${shortStrikeStr}</span>
+              <span class="exit-rule-note">Exit immediately if short strike is breached · consider rolling up</span>
+            </div>
+          </div>
+          <div class="exit-plan-rule">
+            <span class="exit-rule-icon time">⏱</span>
+            <div class="exit-rule-body">
+              <span class="exit-rule-label">Time stop</span>
+              <span class="exit-rule-value">Close 1 DTE minimum</span>
+              <span class="exit-rule-note">Gamma risk spikes in final 24h — do not hold through expiry unless deep OTM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   const actionColors = { ENTER: "#00d4aa", MONITOR: "#f5a623", WAIT: "#ff5f6d" };
   const borderColor = actionColors[action] || "#5b8ef0";
 
@@ -202,6 +241,7 @@ function renderSignalData(section, d) {
           <div class="payoff-canvas-wrap signal-payoff-wrap">
             <canvas id="signal-payoff-chart"></canvas>
           </div>
+          ${exitPlanHTML}
         ` : ""}
         <div class="signal-market-bar">
           <div class="signal-market-item">

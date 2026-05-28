@@ -350,6 +350,52 @@ def _build_summary(sessions: list[dict], capital: float) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Exit classification
+# ---------------------------------------------------------------------------
+
+def _classify_exit(session: dict) -> dict:
+    """Classify exit type and capture % for a session."""
+    trades = session.get("trades", [])
+    if not trades:
+        return {"exit_type": None, "capture_pct": None, "dte_at_exit": None}
+
+    expiry_dates = [t["expiry_date"] for t in trades if t.get("expiry_date")]
+    close_dates  = [t["close_date"]  for t in trades if t.get("close_date")]
+    if not expiry_dates or not close_dates:
+        return {"exit_type": None, "capture_pct": None, "dte_at_exit": None}
+
+    max_expiry  = max(expiry_dates)
+    min_close   = min(close_dates)
+    dte_at_exit = (max_expiry - min_close).days
+
+    # Max theoretical P&L = sum(net_credit × qty) per spread pair (matched by open_time)
+    shorts = [t for t in trades if t.get("spread_role") == "SHORT_LEG"]
+    longs  = [t for t in trades if t.get("spread_role") == "LONG_LEG"]
+    max_possible = 0.0
+    for s in shorts:
+        ot = s.get("open_time", "")
+        match = next((l for l in longs if l.get("open_time") == ot), None)
+        if match:
+            nc = s["entry_price"] - match["entry_price"]
+            if nc > 0:
+                max_possible += nc * s["qty"]
+
+    session_pnl = session.get("session_pnl", 0.0)
+    capture_pct = round(session_pnl / max_possible * 100, 1) if max_possible > 0 else None
+
+    if dte_at_exit == 0:
+        exit_type = "held_to_expiry"
+    elif session_pnl < 0:
+        exit_type = "rolled"
+    elif capture_pct is not None and capture_pct >= 30:
+        exit_type = "profit_booked"
+    else:
+        exit_type = "early_exit"
+
+    return {"exit_type": exit_type, "capture_pct": capture_pct, "dte_at_exit": dte_at_exit}
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -396,6 +442,15 @@ def compute_strategy_data(
 
     # Merge
     sessions = _merge_sessions(fifo_sessions, cal_df, capital)
+
+    # Classify exits
+    for s in sessions:
+        if s.get("has_legs"):
+            s.update(_classify_exit(s))
+        else:
+            s["exit_type"] = None
+            s["capture_pct"] = None
+            s["dte_at_exit"] = None
 
     # Summary
     summary = _build_summary(sessions, capital)

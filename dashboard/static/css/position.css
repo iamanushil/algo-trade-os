@@ -557,3 +557,93 @@
 [data-theme="light"] .data-table tr:hover td {
   background: rgba(99, 102, 241, 0.04);
 }
+
+/* ── Exit type badges (session detail header) ── */
+.exit-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.exit-type-badge.exit-held   { background: rgba(0,212,170,0.12); color: var(--green); border: 1px solid var(--green-border); }
+.exit-type-badge.exit-profit { background: rgba(99,179,237,0.12); color: #63b3ed; border: 1px solid rgba(99,179,237,0.30); }
+.exit-type-badge.exit-rolled { background: rgba(245,166,35,0.12); color: var(--gold); border: 1px solid var(--gold-border); }
+.exit-type-badge.exit-early  { background: rgba(129,140,248,0.12); color: #818cf8; border: 1px solid rgba(129,140,248,0.30); }
+.exit-capture-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.exit-dte-badge {
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* ── Exit Plan card ── */
+.exit-plan-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.exit-plan-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.exit-plan-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.exit-plan-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.exit-rule-icon {
+  font-size: 13px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  width: 20px;
+  text-align: center;
+}
+.exit-rule-icon.profit { color: var(--green); }
+.exit-rule-icon.stop   { color: var(--red); }
+.exit-rule-icon.time   { color: var(--gold); }
+.exit-rule-icon.time.urgent { color: var(--red); }
+.exit-rule-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  flex: 1;
+}
+.exit-rule-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.exit-rule-value {
+  font-size: 13px;
+  font-weight: 800;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+.exit-rule-value.green { color: var(--green); }
+.exit-rule-value.red   { color: var(--red); }
+.exit-rule-note {
+  font-size: 10px;
+  color: var(--muted);
+  width: 100%;
+}
+.signal-exit-plan { margin-top: 2px; }

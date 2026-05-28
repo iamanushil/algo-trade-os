@@ -74,6 +74,62 @@ function buildActivePositionPanel() {
   }
   body.appendChild(metricsGrid);
 
+  // ── Suggested Exit Plan ──
+  if (shorts.length && longs.length) {
+    const sStrike = shorts[0].strike;
+    const lStrike = longs[0].strike;
+    const nc      = shorts[0].entry_price - longs[0].entry_price;
+    const qty     = Math.abs(shorts[0].qty);
+    const maxProfit = nc * qty;
+    const target50  = Math.round(maxProfit * 0.50);
+    const target70  = Math.round(maxProfit * 0.70);
+    const expiryDate = state.openPositions[0]?.expiry_date ?? "";
+    const dte = metrics.dte ?? 0;
+    const timeStopDate = expiryDate
+      ? (() => {
+          const d = new Date(expiryDate + "T00:00:00");
+          d.setDate(d.getDate() - 1);
+          return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+        })()
+      : null;
+
+    const exitPlanCard = el("div", { class: "exit-plan-card" },
+      el("div", { class: "exit-plan-title" }, "Suggested Exit Plan"),
+      el("div", { class: "exit-plan-rules" },
+        // Rule 1: Profit target
+        el("div", { class: "exit-plan-rule" },
+          el("span", { class: "exit-rule-icon profit" }, "✓"),
+          el("div", { class: "exit-rule-body" },
+            el("span", { class: "exit-rule-label" }, "Profit target (50%)"),
+            el("span", { class: "exit-rule-value green" }, `+₹${target50.toLocaleString("en-IN")}`),
+            el("span", { class: "exit-rule-note" }, `or 70% = +₹${target70.toLocaleString("en-IN")} (hold longer)`)
+          )
+        ),
+        // Rule 2: Stop loss
+        el("div", { class: "exit-plan-rule" },
+          el("span", { class: "exit-rule-icon stop" }, "✗"),
+          el("div", { class: "exit-rule-body" },
+            el("span", { class: "exit-rule-label" }, "Stop loss — NIFTY crosses short strike"),
+            el("span", { class: "exit-rule-value red" }, `NIFTY > ${sStrike.toLocaleString("en-IN")}`),
+            el("span", { class: "exit-rule-note" }, "Exit immediately if short strike is breached")
+          )
+        ),
+        // Rule 3: Time stop
+        el("div", { class: "exit-plan-rule" },
+          el("span", { class: "exit-rule-icon time" + (dte <= 2 ? " urgent" : "") }, "⏱"),
+          el("div", { class: "exit-rule-body" },
+            el("span", { class: "exit-rule-label" }, "Time stop — avoid expiry-day gamma risk"),
+            el("span", { class: "exit-rule-value" + (dte <= 2 ? " red" : "") },
+              timeStopDate ? `Close by ${timeStopDate}` : "Close 1 day before expiry"
+            ),
+            el("span", { class: "exit-rule-note" }, `${dte <= 1 ? "⚠ Close today — at expiry risk!" : dte <= 2 ? "⚠ Tomorrow is last safe day to close" : "Gamma risk spikes in last 1–2 DTE"}`)
+          )
+        )
+      )
+    );
+    body.appendChild(exitPlanCard);
+  }
+
   // ── Live NIFTY bar ──
   const liveBar = el("div", { id: "active-pos-live-bar", class: "active-pos-live-bar" },
     el("span", { class: "live-bar-label" }, "NIFTY LIVE"),

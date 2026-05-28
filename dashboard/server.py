@@ -175,6 +175,9 @@ def _serialise_session(s: dict) -> dict:
         "month": s["month"],
         "has_legs": s["has_legs"],
         "source": s.get("source", ""),
+        "exit_type":   s.get("exit_type"),
+        "capture_pct": s.get("capture_pct"),
+        "dte_at_exit": s.get("dte_at_exit"),
     }
 
 
