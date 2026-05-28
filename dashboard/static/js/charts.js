@@ -64,8 +64,8 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(12,20,34,0.95)",
-          borderColor: "#1c2d45",
+          backgroundColor: "rgba(3,7,18,0.92)",
+          borderColor: "rgba(255,255,255,0.12)",
           borderWidth: 1,
           titleColor: "#9ab0cc",
           bodyColor: "#e4eaf6",
@@ -83,7 +83,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       scales: {
         x: {
           type: "linear",
-          grid: { color: "rgba(28,45,69,0.7)", drawBorder: false },
+          grid: { color: "rgba(255,255,255,0.06)", drawBorder: false },
           ticks: {
             color: "#4e6380",
             maxTicksLimit: 7,
@@ -94,7 +94,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
           max: hi,
         },
         y: {
-          grid: { color: "rgba(28,45,69,0.7)", drawBorder: false },
+          grid: { color: "rgba(255,255,255,0.06)", drawBorder: false },
           ticks: {
             color: "#4e6380",
             font: { size: 10, family: "'Inter', sans-serif" },

@@ -1,6 +1,6 @@
 .sidebar-section {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-section-title {
@@ -37,12 +37,13 @@
 .metric-value.gold { color: var(--gold); }
 
 .total-pnl-block {
-  background: var(--surface2);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border2);
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 12px;
   text-align: center;
+  box-shadow: var(--glass-shadow-sm);
 }
 .total-pnl-block .big-num {
   font-size: 24px;
@@ -64,7 +65,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  background: none;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;

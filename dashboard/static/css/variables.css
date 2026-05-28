@@ -1,24 +1,45 @@
 :root {
-  --bg: #060a13;
-  --surface: #0c1422;
-  --surface2: #101b2e;
-  --surface3: #162338;
-  --border: #1c2d45;
-  --border2: #243659;
+  /* ── Base background ── */
+  --bg: #030712;
+
+  /* ── Glass surfaces ── */
+  --surface: rgba(8, 14, 28, 0.72);
+  --surface2: rgba(255, 255, 255, 0.045);
+  --surface3: rgba(255, 255, 255, 0.085);
+
+  /* ── Borders (white-alpha for glass) ── */
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.13);
+
+  /* ── Text ── */
   --text: #e4eaf6;
   --text2: #9ab0cc;
   --muted: #4e6380;
+
+  /* ── Accent ── */
   --accent: #5b8ef0;
-  --accent-dim: rgba(91,142,240,0.12);
-  --accent-glow: rgba(91,142,240,0.2);
+  --accent-dim: rgba(91, 142, 240, 0.12);
+  --accent-glow: rgba(91, 142, 240, 0.28);
+
+  /* ── Semantic: green ── */
   --green: #00d4aa;
-  --green-bg: rgba(0,212,170,0.08);
-  --green-border: rgba(0,212,170,0.25);
+  --green-bg: rgba(0, 212, 170, 0.08);
+  --green-border: rgba(0, 212, 170, 0.22);
+
+  /* ── Semantic: red ── */
   --red: #ff5f6d;
-  --red-bg: rgba(255,95,109,0.08);
-  --red-border: rgba(255,95,109,0.25);
+  --red-bg: rgba(255, 95, 109, 0.08);
+  --red-border: rgba(255, 95, 109, 0.22);
+
+  /* ── Semantic: gold ── */
   --gold: #f5a623;
-  --gold-bg: rgba(245,166,35,0.08);
-  --gold-border: rgba(245,166,35,0.25);
+  --gold-bg: rgba(245, 166, 35, 0.08);
+  --gold-border: rgba(245, 166, 35, 0.22);
+
+  /* ── Glass tokens ── */
+  --glass-blur: blur(20px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
   --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }

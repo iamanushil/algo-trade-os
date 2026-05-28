@@ -8,15 +8,18 @@
 
 .signal-card {
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
 }
 
 .signal-card-header {
   padding: 10px 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -55,20 +58,20 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
-.signal-badge.ENTER  {
+.signal-badge.ENTER {
   background: linear-gradient(135deg, #00d4aa, #00b894);
   color: #001f17;
-  box-shadow: 0 2px 12px rgba(0,212,170,0.35);
+  box-shadow: 0 2px 16px rgba(0, 212, 170, 0.40);
 }
 .signal-badge.MONITOR {
   background: linear-gradient(135deg, #f5a623, #e8940d);
   color: #1a0e00;
-  box-shadow: 0 2px 12px rgba(245,166,35,0.35);
+  box-shadow: 0 2px 16px rgba(245, 166, 35, 0.40);
 }
 .signal-badge.WAIT {
   background: linear-gradient(135deg, #ff5f6d, #ff3344);
   color: #1a0005;
-  box-shadow: 0 2px 12px rgba(255,95,109,0.35);
+  box-shadow: 0 2px 16px rgba(255, 95, 109, 0.40);
 }
 .signal-badge.loading {
   background: var(--surface2);
@@ -160,7 +163,7 @@
 }
 
 .signal-refresh-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border2);
   color: var(--muted);
   font-size: 12px;
@@ -172,9 +175,9 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.signal-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+.signal-refresh-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 .signal-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .signal-updated {
@@ -343,7 +346,7 @@
 .signal-pnl-block-value.profit { color: var(--green); }
 .signal-pnl-block-value.loss   { color: var(--red); }
 
-/* ── Signal P&L compact metrics row (4 cols, like pos-metrics-grid) ── */
+/* ── Signal P&L compact metrics row (4 cols) ── */
 .signal-pnl-metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -382,7 +385,7 @@
 }
 .signal-payoff-wrap canvas { height: 220px !important; }
 
-/* ── Keep signal-bottom-split for legacy fallback (unused now) ── */
+/* ── Keep signal-bottom-split for legacy fallback ── */
 .signal-bottom-split { display: flex; gap: 16px; align-items: flex-start; }
 .signal-bottom-left  { flex: 1; min-width: 0; }
 .signal-bottom-right { width: 320px; flex-shrink: 0; }

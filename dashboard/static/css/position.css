@@ -41,9 +41,9 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.leg-row:hover { border-color: var(--muted); }
+.leg-row:hover { border-color: rgba(255, 255, 255, 0.18); background: var(--surface3); }
 
 /* SELL/BUY action tag inline in leg row */
 .leg-action-tag {
@@ -73,8 +73,8 @@
   border-radius: 4px;
   letter-spacing: 0.5px;
 }
-.leg-type.CE { background: rgba(91,142,240,0.12); color: #7aabff; border: 1px solid rgba(91,142,240,0.3); }
-.leg-type.PE { background: rgba(255,95,109,0.1); color: #ff8f9a; border: 1px solid rgba(255,95,109,0.3); }
+.leg-type.CE { background: rgba(91, 142, 240, 0.12); color: #7aabff; border: 1px solid rgba(91, 142, 240, 0.3); }
+.leg-type.PE { background: rgba(255, 95, 109, 0.10); color: #ff8f9a; border: 1px solid rgba(255, 95, 109, 0.3); }
 
 .role-badge {
   font-size: 10px;
@@ -85,13 +85,13 @@
   letter-spacing: 0.5px;
 }
 .role-badge.SHORT_LEG, .role-badge.SHORT_LEG_ADJ {
-  background: rgba(255,95,109,0.1);
-  border: 1px solid rgba(255,95,109,0.3);
+  background: rgba(255, 95, 109, 0.10);
+  border: 1px solid rgba(255, 95, 109, 0.30);
   color: #ff8f9a;
 }
 .role-badge.LONG_LEG, .role-badge.LONG_LEG_ADJ {
-  background: rgba(0,212,170,0.1);
-  border: 1px solid rgba(0,212,170,0.25);
+  background: rgba(0, 212, 170, 0.10);
+  border: 1px solid rgba(0, 212, 170, 0.25);
   color: #00d4aa;
 }
 
@@ -118,7 +118,9 @@
   border: 1px solid var(--border2);
   border-radius: 8px;
   padding: 8px 12px;
+  transition: border-color 0.15s;
 }
+.pos-metric-card:hover { border-color: rgba(255, 255, 255, 0.16); }
 
 .pos-metric-label {
   font-size: 9px;
@@ -148,11 +150,13 @@
 }
 .payoff-canvas-wrap {
   margin-top: 12px;
-  background: var(--surface2);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border2);
   border-radius: 10px;
   padding: 10px 14px 8px;
   position: relative;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .payoff-canvas-wrap canvas { display: block; width: 100% !important; height: 200px !important; }
 .pos-payoff-wrap canvas   { height: 220px !important; }
@@ -167,7 +171,7 @@
 .leg-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .leg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
 .leg-bar-label { width: 120px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-.leg-bar-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.leg-bar-track { flex: 1; height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; }
 .leg-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
 .leg-bar-fill.profit { background: var(--green); }
 .leg-bar-fill.loss   { background: var(--red); }
@@ -188,16 +192,16 @@
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
-  color: var(--muted); padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border);
+  color: var(--muted); padding: 8px 12px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 .data-table th:first-child { text-align: left; }
 .data-table td {
-  padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border);
+  padding: 10px 12px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 13px; font-variant-numeric: tabular-nums;
 }
 .data-table td:first-child { text-align: left; }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(91,142,240,0.04); }
+.data-table tr:hover td { background: rgba(91, 142, 240, 0.05); }
 
 .td-strike { font-weight: 700; }
 .td-expiry { color: var(--muted); font-size: 12px; font-weight: 500; }

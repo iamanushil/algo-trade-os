@@ -1,12 +1,12 @@
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
 
 /* ── Badge: live ── */
 .badge-live {
-  background: rgba(0,212,170,0.1);
+  background: rgba(0, 212, 170, 0.10);
   border: 1px solid var(--green-border);
   color: var(--green);
   font-size: 10px;
@@ -60,18 +60,21 @@
   font-size: 14px;
 }
 
-/* ── Panel base ── */
+/* ── Panel base — glass ── */
 .panel {
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .panel-header {
   padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -88,13 +91,18 @@
 
 /* ── Skeleton ── */
 .skeleton {
-  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.09) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   border-radius: 5px;
 }
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
@@ -165,16 +173,19 @@
 }
 .strategy-card {
   background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
   border-left: 3px solid var(--border2);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
   cursor: pointer;
+  box-shadow: var(--glass-shadow-sm);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .strategy-card:hover {
   border-color: var(--border2);
-  box-shadow: 0 0 0 1px var(--accent-dim);
+  box-shadow: 0 0 0 1px var(--accent-dim), var(--glass-shadow-sm);
 }
 .strategy-card.active { border-left-color: var(--accent); }
 .strategy-card-header {
@@ -208,7 +219,7 @@
   gap: 8px;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .strategy-card-stat-label {
   font-size: 10px;

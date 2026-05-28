@@ -10,7 +10,7 @@
 }
 
 .cal-nav-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
   color: var(--muted);
   width: 28px;
@@ -21,9 +21,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
-.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 .cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .cal-month-label {
@@ -58,7 +58,7 @@
   border: 1px solid transparent;
   cursor: default;
   position: relative;
-  transition: border-color 0.12s, box-shadow 0.12s;
+  transition: border-color 0.12s, box-shadow 0.12s, background 0.12s;
 }
 
 .cal-cell.empty {
@@ -70,25 +70,29 @@
   cursor: pointer;
 }
 .cal-cell.session:hover {
-  border-color: rgba(255,255,255,0.15);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 .cal-cell.session.win {
-  background: linear-gradient(135deg, rgba(0,212,170,0.1) 0%, rgba(0,212,170,0.05) 100%);
-  border: 1px solid rgba(0,212,170,0.2);
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.10) 0%, rgba(0, 212, 170, 0.04) 100%);
+  border: 1px solid rgba(0, 212, 170, 0.20);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .cal-cell.session.loss {
-  background: linear-gradient(135deg, rgba(255,95,109,0.1) 0%, rgba(255,95,109,0.05) 100%);
-  border: 1px solid rgba(255,95,109,0.2);
+  background: linear-gradient(135deg, rgba(255, 95, 109, 0.10) 0%, rgba(255, 95, 109, 0.04) 100%);
+  border: 1px solid rgba(255, 95, 109, 0.20);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .cal-cell.session.selected {
   border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 0 12px var(--accent-glow);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 16px var(--accent-glow);
 }
 
 .cal-cell.no-trade {
-  background: var(--surface2);
-  border-color: var(--border);
-  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.45;
 }
 
 .cal-date {
