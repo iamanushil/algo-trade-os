@@ -20,14 +20,15 @@ html, body {
   line-height: 1.5;
 }
 
-/* ── Light theme: soft pastel ambient orbs on white-blue base ── */
+/* ── Light theme: rich pastel orbs — glass needs visible color behind it ── */
 [data-theme="light"] body {
   background:
-    radial-gradient(ellipse 80% 55% at 10% 40%, rgba(99, 102, 241, 0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 45% at 90% 8%,  rgba(8, 145, 178, 0.05) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 50% at 55% 95%, rgba(124, 58, 237, 0.04) 0%, transparent 58%),
-    radial-gradient(ellipse 35% 30% at 95% 65%, rgba(167, 139, 250, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, #f0f2ff 0%, #f8fafc 40%, #eef4ff 100%);
+    radial-gradient(ellipse 85% 60% at 12% 42%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 88% 10%, rgba(8, 145, 178, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 55% at 52% 92%, rgba(124, 58, 237, 0.14) 0%, transparent 58%),
+    radial-gradient(ellipse 38% 32% at 95% 68%, rgba(167, 139, 250, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 28% 28% at 35% 8%,  rgba(8, 145, 178, 0.08) 0%, transparent 50%),
+    #dde3f8;
 }
 
 /* ── Layout wrappers ── */
@@ -290,19 +291,19 @@ html, body {
 
 /* ── Light theme: header / sidebar / dropdown overrides ── */
 [data-theme="light"] #header {
-  background:
-    linear-gradient(180deg, rgba(99, 102, 241, 0.03) 0%, transparent 100%),
-    rgba(248, 250, 252, 0.85);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.80), 0 4px 24px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.60);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.70);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.80), 0 4px 20px rgba(99, 102, 241, 0.08);
 }
 
 [data-theme="light"] #sidebar {
-  background:
-    linear-gradient(180deg, rgba(99, 102, 241, 0.03) 0%, transparent 35%),
-    rgba(248, 250, 252, 0.80);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.50);
 }
 
 [data-theme="light"] .strat-btn {
