@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trading Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e1117;
+      --surface: #161b27;
+      --surface2: #1e2535;
+      --border: #2a3347;
+      --green: #22c55e;
+      --green-bg: #0d2818;
+      --red: #ef4444;
+      --red-bg: #280d0d;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent: #3b82f6;
+      --gold: #f59e0b;
+      --gold-bg: #2d1f04;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ── Layout wrappers ── */
+    #app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Header ── */
+    #header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    #header-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    #header-logo span { color: var(--accent); }
+
+    #header-strategy-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    #header-separator { color: var(--border); font-size: 18px; }
+
+    .badge-live {
+      background: var(--green-bg);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    #header-pnl {
+      margin-left: auto;
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    #header-pnl.positive { color: var(--green); }
+    #header-pnl.negative { color: var(--red); }
+
+    #header-pct {
+      font-size: 13px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Tab bar ── */
+    #tab-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      height: 44px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-btn:hover:not(.disabled) { background: var(--surface2); color: var(--text); }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .tab-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .badge-soon {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Main content ── */
+    #content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .metric-row:last-child { margin-bottom: 0; }
+
+    .metric-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .metric-value {
+      font-size: 13px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .metric-value.green { color: var(--green); }
+    .metric-value.red { color: var(--red); }
+    .metric-value.gold { color: var(--gold); }
+
+    .total-pnl-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .total-pnl-block .big-num {
+      font-size: 22px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .total-pnl-block .big-num.green { color: var(--green); }
+    .total-pnl-block .big-num.red { color: var(--red); }
+    .total-pnl-block .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Month buttons */
+    .month-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      color: var(--text);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .month-btn:last-child { margin-bottom: 0; }
+    .month-btn:hover { background: var(--surface2); border-color: var(--accent); }
+    .month-btn.active { background: var(--surface2); border-color: var(--accent); }
+
+    .month-btn .month-name { font-size: 12px; font-weight: 600; }
+    .month-btn .month-pnl { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .month-btn .month-pnl.green { color: var(--green); }
+    .month-btn .month-pnl.red { color: var(--red); }
+
+    /* Legend */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend-item:last-child { margin-bottom: 0; }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-swatch {
+      width: 14px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Main area ── */
+    #main {
+      flex: 1;
+      padding: 20px 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Loading / error states ── */
+    .loading-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: var(--muted);
+      font-size: 15px;
+      gap: 10px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-state {
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      color: var(--red);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 14px;
+    }
+
+    /* ── Panel base ── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .panel-body { padding: 16px; }
+
+    /* ── Active Position Panel ── */
+    #active-position-panel {
+      border-left: 3px solid var(--gold);
+    }
+
+    .badge-active {
+      background: var(--green-bg);
+      border: 1px solid var(--green);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .legs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .leg-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .leg-strike {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 90px;
+    }
+
+    .leg-type {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .leg-type.CE { background: #1e3a5f; color: #60a5fa; border: 1px solid #2d5a9e; }
+    .leg-type.PE { background: #3f1e1e; color: #f87171; border: 1px solid #7c2d2d; }
+
+    .role-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .role-badge.SHORT_LEG, .role-badge.SHORT_LEG_ADJ {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: #f87171;
+    }
+    .role-badge.LONG_LEG, .role-badge.LONG_LEG_ADJ {
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.35);
+      color: #4ade80;
+    }
+
+    .leg-detail {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .leg-detail strong { color: var(--text); }
+
+    /* Position metrics */
+    .pos-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .pos-metric-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+    }
+
+    .pos-metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .pos-metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .pos-metric-value.green { color: var(--green); }
+    .pos-metric-value.red { color: var(--red); }
+    .pos-metric-value.gold { color: var(--gold); }
+
+    /* ── Calendar ── */
+    #calendar-panel .panel-header {
+      justify-content: space-between;
+    }
+
+    .cal-month-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cal-nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .cal-month-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 100px;
+      text-align: center;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      padding: 16px;
+    }
+
+    .cal-day-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    .cal-cell {
+      min-height: 72px;
+      border-radius: 7px;
+      padding: 8px;
+      border: 1px solid transparent;
+      cursor: default;
+      position: relative;
+      transition: border-color 0.12s;
+    }
+
+    .cal-cell.empty {
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .cal-cell.session {
+      cursor: pointer;
+    }
+    .cal-cell.session:hover {
+      border-color: rgba(255,255,255,0.2);
+    }
+    .cal-cell.session.win {
+      background: var(--green-bg);
+      border-color: rgba(34,197,94,0.25);
+    }
+    .cal-cell.session.loss {
+      background: var(--red-bg);
+      border-color: rgba(239,68,68,0.25);
+    }
+    .cal-cell.session.selected {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .cal-cell.no-trade {
+      background: var(--surface2);
+      border-color: var(--border);
+    }
+
+    .cal-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .cal-pnl {
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .cal-pnl.green { color: var(--green); }
+    .cal-pnl.red { color: var(--red); }
+
+    .cal-pct {
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cal-dot-row {
+      position: absolute;
+      bottom: 6px;
+      right: 7px;
+      display: flex;
+      gap: 3px;
+    }
+
+    .cal-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .cal-dot.blue { background: var(--accent); }
+    .cal-dot.grey { background: var(--muted); }
+
+    /* ── Trade Detail Panel ── */
+    #trade-detail-panel .panel-header {
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .detail-header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .detail-expiry {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .detail-session-pnl {
+      font-size: 15px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .detail-session-pnl.green { color: var(--green); }
+    .detail-session-pnl.red { color: var(--red); }
+
+    /* ── Table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      padding: 8px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    .data-table th:first-child { text-align: left; }
+
+    .data-table td {
+      padding: 10px 12px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .data-table td:first-child { text-align: left; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--surface2); }
+
+    .td-strike { font-weight: 700; }
+    .td-expiry { color: var(--muted); font-size: 12px; }
+    .td-time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .td-time-h { font-size: 10px; }
+    .td-green { color: var(--green); font-weight: 600; }
+    .td-red { color: var(--red); font-weight: 600; }
+
+    .no-detail-msg {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px;
+      font-size: 13px;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 5px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-line {
+      height: 14px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Dividers & utils ── */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .gap-8 { gap: 8px; }
+    .ml-auto { margin-left: auto; }
+    .text-muted { color: var(--muted); }
+    .text-sm { font-size: 12px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 24px;
+      font-size: 14px;
+    }
+    .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      #header-logo { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header id="header">
+    <div id="header-logo">algo<span>OS</span></div>
+    <div id="header-separator">|</div>
+    <div id="header-strategy-name">Loading…</div>
+    <span class="badge-live">Live</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <div id="header-pct" class="text-muted"></div>
+      <div id="header-pnl">—</div>
+    </div>
+  </header>
+
+  <!-- Tab bar -->
+  <nav id="tab-bar"></nav>
+
+  <!-- Content -->
+  <div id="content">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <!-- Overall section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Overall</div>
+        <div id="sidebar-overall">
+          <div class="skeleton skeleton-line" style="width:100%;height:60px;margin-bottom:12px;border-radius:8px;"></div>
+          <div class="skeleton skeleton-line" style="width:80%;"></div>
+          <div class="skeleton skeleton-line" style="width:90%;"></div>
+          <div class="skeleton skeleton-line" style="width:70%;"></div>
+        </div>
+      </div>
+
+      <!-- By Month section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">By Month</div>
+        <div id="sidebar-months">
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+      </div>
+
+      <!-- Legend section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Legend</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--green-bg);border:1px solid rgba(34,197,94,0.25);"></div> Winning session</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--red-bg);border:1px solid rgba(239,68,68,0.25);"></div> Losing session</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent);"></div> Has leg detail</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--muted);"></div> Summary only</div>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <main id="main">
+      <div class="loading-state" id="main-loading">
+        <div class="spinner"></div>
+        <span>Loading strategy data…</span>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+// ── Config ──────────────────────────────────────────────────
+const API = "";
+
+// ── App state ───────────────────────────────────────────────
+let state = {
+  strategies: [],
+  activeStrategyId: null,
+  summary: null,
+  sessions: [],          // [{date, pnl, pct, month, has_legs}]
+  openPositions: [],     // [{expiry_date, strike, option_type, qty, entry_price, spread_role, open_date}]
+  months: [],            // sorted month keys "YYYY-MM"
+  selectedMonth: null,
+  selectedDate: null,
+  trades: [],            // [{expiry, strike, option_type, qty, entry_price, exit_price, leg_pnl, spread_role}]
+  loadingTrades: false,
+};
+
+// ── Formatting helpers ───────────────────────────────────────
+function fmt(n) {
+  const sign = n >= 0 ? "+" : "-";
+  return sign + "₹" + Math.abs(n).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function fmtPct(n) {
+  const sign = n >= 0 ? "+" : "-";
+  return sign + Math.abs(n).toFixed(2) + "%";
+}
+
+function colorClass(n) {
+  return n >= 0 ? "green" : "red";
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// Parse "May-2026" → {year:2026, month:5}
+function parseMonthKey(key) {
+  const [abbr, y] = key.split("-");
+  const year = parseInt(y);
+  const month = new Date(`${abbr} 1, ${year}`).getMonth() + 1;
+  return { year, month };
+}
+
+function fmtMonthLabel(key) {
+  return key; // "May-2026" is already display-ready
+}
+
+function daysToExpiry(expiryDateStr) {
+  if (!expiryDateStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiryDateStr + "T00:00:00");
+  exp.setHours(0, 0, 0, 0);
+  const diff = Math.round((exp - today) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+// ── API helpers ──────────────────────────────────────────────
+async function apiFetch(path) {
+  const res = await fetch(API + path);
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+  return res.json();
+}
+
+// ── Render helpers ────────────────────────────────────────────
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k === "style") e.style.cssText = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    e.append(typeof c === "string" ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+function html(str) {
+  const d = document.createElement("div");
+  d.innerHTML = str;
+  return d;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function renderTabs() {
+  const bar = document.getElementById("tab-bar");
+  bar.innerHTML = "";
+
+  if (!state.strategies.length) {
+    bar.appendChild(el("span", { class: "text-muted text-sm" }, "No strategies found"));
+    return;
+  }
+
+  for (const s of state.strategies) {
+    const isActive = s.id === state.activeStrategyId;
+    const isSoon = s.status === "coming_soon";
+
+    const btn = el("button", {
+      class: ["tab-btn", isActive ? "active" : "", isSoon ? "disabled" : ""].filter(Boolean).join(" "),
+    }, s.name);
+
+    if (isSoon) {
+      btn.appendChild(el("span", { class: "badge-soon" }, "soon"));
+    }
+
+    if (!isSoon) {
+      btn.addEventListener("click", () => {
+        if (s.id !== state.activeStrategyId) {
+          selectStrategy(s.id);
+        }
+      });
+    }
+
+    bar.appendChild(btn);
+  }
+}
+
+// ── Select strategy ───────────────────────────────────────────
+async function selectStrategy(id) {
+  state.activeStrategyId = id;
+  state.summary = null;
+  state.sessions = [];
+  state.openPositions = [];
+  state.months = [];
+  state.selectedMonth = null;
+  state.selectedDate = null;
+  state.trades = [];
+
+  renderTabs();
+  showMainLoading();
+  renderSidebarSkeleton();
+
+  const strat = state.strategies.find(s => s.id === id);
+  document.getElementById("header-strategy-name").textContent = strat ? strat.name : "—";
+  document.getElementById("header-pnl").textContent = "—";
+  document.getElementById("header-pnl").className = "";
+  document.getElementById("header-pct").textContent = "";
+
+  try {
+    const [summary, sessions, openPositions] = await Promise.all([
+      apiFetch(`/api/strategies/${id}/summary`),
+      apiFetch(`/api/strategies/${id}/sessions`),
+      apiFetch(`/api/strategies/${id}/open`),
+    ]);
+
+    state.summary = summary;
+    state.sessions = sessions || [];
+    state.openPositions = openPositions || [];
+
+    // Build sorted month list (chronological, not alphabetical)
+    const monthSet = new Set(state.sessions.map(s => s.month));
+    state.months = Array.from(monthSet).sort((a, b) => {
+      const pa = parseMonthKey(a), pb = parseMonthKey(b);
+      return (pa.year * 12 + pa.month) - (pb.year * 12 + pb.month);
+    });
+
+    // Default to latest month
+    state.selectedMonth = state.months.length ? state.months[state.months.length - 1] : null;
+
+    updateHeaderPnl();
+    renderSidebarOverall();
+    renderSidebarMonths();
+    renderMain();
+  } catch (err) {
+    showMainError(err.message);
+  }
+}
+
+function updateHeaderPnl() {
+  if (!state.summary) return;
+  const pnl = state.summary.total_pnl;
+  const pct = state.summary.total_pct;
+  const hPnl = document.getElementById("header-pnl");
+  const hPct = document.getElementById("header-pct");
+  hPnl.textContent = fmt(pnl);
+  hPnl.className = colorClass(pnl);
+  hPct.textContent = fmtPct(pct);
+}
+
+// ── Sidebar ───────────────────────────────────────────────────
+function renderSidebarSkeleton() {
+  document.getElementById("sidebar-overall").innerHTML = `
+    <div class="skeleton skeleton-line" style="width:100%;height:60px;margin-bottom:12px;border-radius:8px;"></div>
+    <div class="skeleton skeleton-line" style="width:80%;"></div>
+    <div class="skeleton skeleton-line" style="width:90%;"></div>
+    <div class="skeleton skeleton-line" style="width:70%;"></div>
+    <div class="skeleton skeleton-line" style="width:85%;"></div>
+  `;
+  document.getElementById("sidebar-months").innerHTML = `
+    <div class="skeleton skeleton-line"></div>
+    <div class="skeleton skeleton-line"></div>
+    <div class="skeleton skeleton-line"></div>
+  `;
+}
+
+function renderSidebarOverall() {
+  const s = state.summary;
+  if (!s) return;
+
+  const overall = document.getElementById("sidebar-overall");
+  overall.innerHTML = "";
+
+  const totalBlock = el("div", { class: "total-pnl-block" },
+    el("div", { class: "big-num " + colorClass(s.total_pnl) }, fmt(s.total_pnl)),
+    el("div", { class: "sub" }, fmtPct(s.total_pct) + " total return")
+  );
+  overall.appendChild(totalBlock);
+
+  const rows = [
+    ["Sessions", s.sessions_count],
+    ["Win Rate", { val: (s.win_rate * 100).toFixed(1) + "%", cls: "gold" }],
+    ["W / L", `${s.wins} / ${s.losses}`],
+    ["Best Day", { val: fmt(s.best_session?.pnl ?? 0), cls: "green" }],
+    ["Worst Day", { val: fmt(s.worst_session?.pnl ?? 0), cls: "red" }],
+    ["First Session", fmtDate(s.first_session)],
+    ["Last Session", fmtDate(s.last_session)],
+  ];
+
+  for (const [label, value] of rows) {
+    const row = el("div", { class: "metric-row" });
+    row.appendChild(el("span", { class: "metric-label" }, label));
+    if (typeof value === "object" && value !== null && value.val !== undefined) {
+      row.appendChild(el("span", { class: "metric-value " + value.cls }, value.val));
+    } else {
+      row.appendChild(el("span", { class: "metric-value" }, String(value)));
+    }
+    overall.appendChild(row);
+  }
+
+  if (s.best_session) {
+    const sub = el("div", { class: "metric-row", style: "margin-top:4px;" });
+    sub.appendChild(el("span", { class: "metric-label" }, ""));
+    sub.appendChild(el("span", { class: "text-muted text-sm" }, fmtDate(s.best_session.date)));
+    overall.appendChild(sub);
+  }
+}
+
+function renderSidebarMonths() {
+  const container = document.getElementById("sidebar-months");
+  container.innerHTML = "";
+
+  const monthMap = {};
+  for (const m of (state.summary?.monthly || [])) {
+    monthMap[m.month] = m;
+  }
+
+  if (!state.months.length) {
+    container.appendChild(el("div", { class: "text-muted text-sm" }, "No data"));
+    return;
+  }
+
+  // Show months in reverse chronological order
+  const sorted = [...state.months].reverse();
+  for (const key of sorted) {
+    const data = monthMap[key];
+    const pnl = data?.pnl ?? 0;
+    const btn = el("button", {
+      class: "month-btn" + (key === state.selectedMonth ? " active" : ""),
+      "data-month": key,
+    },
+      el("span", { class: "month-name" }, fmtMonthLabel(key)),
+      el("span", { class: "month-pnl " + colorClass(pnl) }, fmt(pnl))
+    );
+    btn.addEventListener("click", () => selectMonth(key));
+    container.appendChild(btn);
+  }
+}
+
+function selectMonth(key) {
+  state.selectedMonth = key;
+  state.selectedDate = null;
+  state.trades = [];
+
+  // Update month button active states
+  document.querySelectorAll(".month-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.month === key);
+  });
+
+  renderMain();
+}
+
+// ── Main area ─────────────────────────────────────────────────
+function showMainLoading() {
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  main.appendChild(el("div", { class: "loading-state", id: "main-loading" },
+    el("div", { class: "spinner" }),
+    el("span", {}, "Loading strategy data…")
+  ));
+}
+
+function showMainError(msg) {
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  main.appendChild(el("div", { class: "error-state" },
+    el("strong", {}, "Could not connect to server. "),
+    document.createTextNode("Make sure the Flask server is running at " + API + ". Error: " + msg)
+  ));
+}
+
+function renderMain() {
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  if (!state.summary) {
+    main.appendChild(el("div", { class: "empty-state" },
+      el("div", { class: "empty-icon" }, "📊"),
+      el("div", {}, "No data available")
+    ));
+    return;
+  }
+
+  // Active positions panel
+  if (state.openPositions.length > 0) {
+    main.appendChild(buildActivePositionPanel());
+  }
+
+  // Calendar panel
+  if (state.selectedMonth) {
+    main.appendChild(buildCalendarPanel());
+  } else {
+    main.appendChild(el("div", { class: "empty-state" },
+      el("div", { class: "empty-icon" }, "📅"),
+      el("div", {}, "No sessions found for this strategy")
+    ));
+  }
+
+  // Trade detail panel
+  if (state.selectedDate !== null) {
+    main.appendChild(buildTradeDetailPanel());
+  }
+}
+
+// ── Active Positions ──────────────────────────────────────────
+function buildActivePositionPanel() {
+  const panel = el("div", { class: "panel", id: "active-position-panel" });
+
+  const header = el("div", { class: "panel-header" },
+    el("span", { class: "panel-title" }, "Active Position"),
+    el("span", { class: "badge-active" }, "ACTIVE")
+  );
+  panel.appendChild(header);
+
+  const body = el("div", { class: "panel-body" });
+
+  // Legs grid
+  const legsGrid = el("div", { class: "legs-grid" });
+  for (const pos of state.openPositions) {
+    const dte = daysToExpiry(pos.expiry_date);
+    const dteStr = dte !== null ? `${dte}d to expiry` : "";
+
+    const row = el("div", { class: "leg-row" },
+      el("span", { class: "leg-strike" }, `${pos.strike} ${pos.option_type}`),
+      el("span", { class: "leg-type " + pos.option_type }, pos.option_type),
+      el("span", { class: "role-badge " + pos.spread_role }, pos.spread_role.replace(/_/g, " ")),
+      el("span", { class: "leg-detail" },
+        el("strong", {}, `Qty: ${Math.abs(pos.qty)}`),
+        document.createTextNode(` · Entry @ ₹${pos.entry_price.toFixed(2)}`),
+        pos.expiry_date ? el("span", { class: "text-muted" }, ` · ${fmtDate(pos.expiry_date)}`) : null,
+        dteStr ? el("span", { class: "text-muted", style: "margin-left:6px;color:var(--gold);" }, `(${dteStr})`) : null
+      )
+    );
+    legsGrid.appendChild(row);
+  }
+  body.appendChild(legsGrid);
+
+  // Compute position metrics
+  const metrics = computePositionMetrics(state.openPositions);
+
+  const metricsGrid = el("div", { class: "pos-metrics-grid" });
+
+  const metricDefs = [
+    { label: "Net Credit", val: metrics.netCreditStr, cls: "green" },
+    { label: "Spread Width", val: metrics.spreadWidthStr, cls: "" },
+    { label: "Days to Expiry", val: metrics.dteStr, cls: metrics.dte <= 3 ? "red" : metrics.dte <= 7 ? "gold" : "" },
+    { label: "Max Profit", val: metrics.maxProfitStr, cls: "green" },
+    { label: "Max Risk", val: metrics.maxRiskStr, cls: "red" },
+    { label: "R:R Ratio", val: metrics.rrStr, cls: "" },
+  ];
+
+  for (const m of metricDefs) {
+    metricsGrid.appendChild(
+      el("div", { class: "pos-metric-card" },
+        el("div", { class: "pos-metric-label" }, m.label),
+        el("div", { class: "pos-metric-value " + m.cls }, m.val)
+      )
+    );
+  }
+
+  body.appendChild(metricsGrid);
+  panel.appendChild(body);
+  return panel;
+}
+
+function computePositionMetrics(positions) {
+  if (!positions.length) return {};
+
+  // Group short and long legs
+  const shorts = positions.filter(p => p.spread_role === "SHORT_LEG" || p.spread_role === "SHORT_LEG_ADJ");
+  const longs = positions.filter(p => p.spread_role === "LONG_LEG" || p.spread_role === "LONG_LEG_ADJ");
+
+  // Net credit per unit: sum(short entry prices) - sum(long entry prices)
+  const shortTotal = shorts.reduce((a, p) => a + p.entry_price * Math.abs(p.qty), 0);
+  const longTotal = longs.reduce((a, p) => a + p.entry_price * Math.abs(p.qty), 0);
+  const netCreditTotal = shortTotal - longTotal;
+
+  // Spread width: difference in strikes (abs)
+  let spreadWidth = 0;
+  if (shorts.length && longs.length) {
+    const shortStrike = shorts[0].strike;
+    const longStrike = longs[0].strike;
+    spreadWidth = Math.abs(longStrike - shortStrike);
+  }
+
+  // Total quantity (lots)
+  const totalQty = shorts.length ? Math.abs(shorts[0].qty) : (longs.length ? Math.abs(longs[0].qty) : 1);
+
+  // Net credit per unit
+  const netCreditPerUnit = shorts.length && longs.length
+    ? shorts[0].entry_price - longs[0].entry_price
+    : netCreditTotal / Math.max(totalQty, 1);
+
+  // Max profit = net credit received
+  const maxProfit = netCreditTotal;
+
+  // Max risk = (spread_width - net_credit_per_unit) * total_qty
+  const maxRisk = (spreadWidth - netCreditPerUnit) * totalQty;
+
+  // Days to expiry from first position's expiry_date
+  const firstExpiry = positions[0]?.expiry_date;
+  const dte = daysToExpiry(firstExpiry) ?? 0;
+
+  // R:R ratio
+  const rrRatio = maxRisk > 0 ? (maxProfit / maxRisk).toFixed(2) : "N/A";
+
+  return {
+    netCreditStr: fmt(netCreditTotal),
+    spreadWidthStr: spreadWidth ? `₹${spreadWidth.toLocaleString("en-IN")}` : "—",
+    dteStr: dte !== null ? `${dte} days` : "—",
+    dte: dte,
+    maxProfitStr: fmt(maxProfit),
+    maxRiskStr: fmt(maxRisk),
+    rrStr: typeof rrRatio === "string" ? rrRatio : `1 : ${(1 / parseFloat(rrRatio)).toFixed(2)}`,
+  };
+}
+
+// ── Calendar ─────────────────────────────────────────────────
+function buildCalendarPanel() {
+  const panel = el("div", { class: "panel", id: "calendar-panel" });
+
+  const header = el("div", { class: "panel-header" },
+    el("span", { class: "panel-title" }, "Session Calendar"),
+    el("div", { class: "cal-month-nav" },
+      el("button", { class: "cal-nav-btn", id: "cal-prev", title: "Previous month" }, "‹"),
+      el("span", { class: "cal-month-label", id: "cal-month-label" }, fmtMonthLabel(state.selectedMonth)),
+      el("button", { class: "cal-nav-btn", id: "cal-next", title: "Next month" }, "›")
+    )
+  );
+  panel.appendChild(header);
+
+  const grid = el("div", { class: "calendar-grid", id: "cal-grid" });
+  buildCalendarGrid(grid);
+  panel.appendChild(grid);
+
+  // Wire up nav buttons after panel is in DOM (use event delegation on the grid)
+  // We attach listeners after returning, so use setTimeout 0 or attach here:
+  setTimeout(() => {
+    const prevBtn = document.getElementById("cal-prev");
+    const nextBtn = document.getElementById("cal-next");
+    if (prevBtn) {
+      const idx = state.months.indexOf(state.selectedMonth);
+      prevBtn.disabled = idx <= 0;
+      prevBtn.addEventListener("click", () => {
+        const i = state.months.indexOf(state.selectedMonth);
+        if (i > 0) selectMonth(state.months[i - 1]);
+      });
+    }
+    if (nextBtn) {
+      const idx = state.months.indexOf(state.selectedMonth);
+      nextBtn.disabled = idx >= state.months.length - 1;
+      nextBtn.addEventListener("click", () => {
+        const i = state.months.indexOf(state.selectedMonth);
+        if (i < state.months.length - 1) selectMonth(state.months[i + 1]);
+      });
+    }
+  }, 0);
+
+  return panel;
+}
+
+function buildCalendarGrid(grid) {
+  // Day headers Mon-Fri
+  const dayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  for (const d of dayHeaders) {
+    grid.appendChild(el("div", { class: "cal-day-header" }, d));
+  }
+
+  const { year, month } = parseMonthKey(state.selectedMonth);
+
+  // Session lookup by date string
+  const sessionMap = {};
+  for (const s of state.sessions) {
+    if (s.month === state.selectedMonth) {
+      sessionMap[s.date] = s;
+    }
+  }
+
+  // Build all week days in the month
+  const cells = buildMonthCells(year, month, sessionMap);
+
+  for (const cell of cells) {
+    grid.appendChild(cell);
+  }
+}
+
+function buildMonthCells(year, month, sessionMap) {
+  // month is 1-based
+  const cells = [];
+
+  // First day of month
+  const firstDay = new Date(year, month - 1, 1);
+  // Day of week: 0=Sun,1=Mon,...,6=Sat
+  let startDow = firstDay.getDay(); // 0=Sun
+  // Convert to Mon-based offset (Mon=0,...Fri=4)
+  // For Mon-Fri grid: skip weekends
+  // We need to figure out which weekday column the 1st falls on
+  // If it's Sat or Sun, skip to Monday
+
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  // Collect all Mon-Fri dates in the month
+  const tradingDays = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(year, month - 1, d);
+    const dow = dt.getDay(); // 0=Sun,6=Sat
+    if (dow >= 1 && dow <= 5) {
+      tradingDays.push(d);
+    }
+  }
+
+  if (!tradingDays.length) return cells;
+
+  // Determine the weekday (Mon=0,...Fri=4) of the first trading day
+  const firstTradingDate = new Date(year, month - 1, tradingDays[0]);
+  const firstColIndex = firstTradingDate.getDay() - 1; // 0=Mon,...4=Fri
+
+  // Add empty cells before the first trading day
+  for (let i = 0; i < firstColIndex; i++) {
+    cells.push(el("div", { class: "cal-cell empty" }));
+  }
+
+  // Render all Mon-Fri in the month
+  let col = firstColIndex;
+  for (const d of tradingDays) {
+    const dt = new Date(year, month - 1, d);
+    const dowIndex = dt.getDay() - 1; // 0=Mon...4=Fri
+
+    // If there's a gap (holiday skipped days), fill with empties
+    while (col < dowIndex || (col === 5)) {
+      // This shouldn't happen since we only collected Mon-Fri
+      // but guard anyway
+      cells.push(el("div", { class: "cal-cell empty" }));
+      col = (col + 1) % 5;
+    }
+
+    const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const session = sessionMap[dateStr];
+
+    let cell;
+    if (session) {
+      const isWin = session.pnl >= 0;
+      const isSelected = state.selectedDate === dateStr;
+      cell = el("div", {
+        class: ["cal-cell", "session", isWin ? "win" : "loss", isSelected ? "selected" : ""].filter(Boolean).join(" "),
+        "data-date": dateStr,
+        title: `${fmtDate(dateStr)} — ${fmt(session.pnl)} (${fmtPct(session.pct)})`
+      });
+      cell.addEventListener("click", () => selectDate(dateStr));
+
+      cell.appendChild(el("div", { class: "cal-date" }, String(d)));
+      cell.appendChild(el("div", { class: "cal-pnl " + colorClass(session.pnl) }, fmt(session.pnl)));
+      cell.appendChild(el("div", { class: "cal-pct" }, fmtPct(session.pct)));
+
+      // Dot indicator
+      const dotRow = el("div", { class: "cal-dot-row" });
+      dotRow.appendChild(el("div", { class: "cal-dot " + (session.has_legs ? "blue" : "grey") }));
+      cell.appendChild(dotRow);
+    } else {
+      cell = el("div", {
+        class: "cal-cell no-trade",
+        title: fmtDate(dateStr) + " — No trade"
+      });
+      cell.appendChild(el("div", { class: "cal-date" }, String(d)));
+    }
+
+    cells.push(cell);
+    col = dowIndex + 1;
+    if (col >= 5) col = 0;
+  }
+
+  return cells;
+}
+
+async function selectDate(dateStr) {
+  if (state.selectedDate === dateStr) {
+    // Toggle off
+    state.selectedDate = null;
+    state.trades = [];
+    refreshCalendarSelection();
+    // Remove trade detail panel
+    const existing = document.getElementById("trade-detail-panel");
+    if (existing) existing.remove();
+    return;
+  }
+
+  state.selectedDate = dateStr;
+  state.trades = [];
+
+  refreshCalendarSelection();
+
+  // Remove old trade detail
+  const existing = document.getElementById("trade-detail-panel");
+  if (existing) existing.remove();
+
+  // Add loading placeholder
+  const main = document.getElementById("main");
+  const placeholder = el("div", { class: "panel", id: "trade-detail-panel" },
+    el("div", { class: "panel-header" }, el("span", { class: "panel-title" }, "Loading trades…")),
+    el("div", { class: "panel-body" },
+      el("div", { class: "loading-state", style: "padding:24px;flex:none;" },
+        el("div", { class: "spinner" }),
+        el("span", {}, "Fetching leg data…")
+      )
+    )
+  );
+  main.appendChild(placeholder);
+  main.scrollTo({ top: main.scrollHeight, behavior: "smooth" });
+
+  try {
+    const trades = await apiFetch(`/api/strategies/${state.activeStrategyId}/trades/${dateStr}`);
+    state.trades = trades || [];
+  } catch (err) {
+    state.trades = [];
+  }
+
+  // Replace placeholder
+  const panel = document.getElementById("trade-detail-panel");
+  if (panel) panel.remove();
+
+  const newPanel = buildTradeDetailPanel();
+  document.getElementById("main").appendChild(newPanel);
+  newPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function refreshCalendarSelection() {
+  document.querySelectorAll(".cal-cell.session").forEach(c => {
+    c.classList.toggle("selected", c.dataset.date === state.selectedDate);
+  });
+}
+
+// ── Trade Detail ──────────────────────────────────────────────
+function buildTradeDetailPanel() {
+  const panel = el("div", { class: "panel", id: "trade-detail-panel" });
+
+  const session = state.sessions.find(s => s.date === state.selectedDate);
+  const sessionPnl = session?.pnl ?? 0;
+
+  // Find expiry from trades
+  const expiry = state.trades.length ? state.trades[0].expiry : null;
+
+  const header = el("div", { class: "panel-header" },
+    el("div", { class: "flex items-center gap-8" },
+      el("span", { class: "panel-title" }, fmtDate(state.selectedDate)),
+      expiry ? el("span", { class: "detail-expiry" }, `Expiry: ${fmtDate(expiry)}`) : null
+    ),
+    el("div", { class: "detail-header-right" },
+      el("span", {
+        class: "detail-session-pnl " + colorClass(sessionPnl)
+      }, fmt(sessionPnl))
+    )
+  );
+  panel.appendChild(header);
+
+  const body = el("div", { class: "panel-body" });
+
+  if (!state.trades.length) {
+    body.appendChild(el("div", { class: "no-detail-msg" }, "No leg detail available for this session."));
+  } else {
+    const table = el("table", { class: "data-table" });
+
+    const thead = el("thead",
+      {},
+      el("tr", {},
+        el("th", {}, "Strike"),
+        el("th", {}, "Expiry"),
+        el("th", {}, "Type"),
+        el("th", {}, "Qty"),
+        el("th", {}, "Entry"),
+        el("th", { class: "td-time-h" }, "In Time"),
+        el("th", {}, "Exit"),
+        el("th", { class: "td-time-h" }, "Out Time"),
+        el("th", {}, "P&L"),
+        el("th", {}, "Role")
+      )
+    );
+    table.appendChild(thead);
+
+    const tbody = el("tbody", {});
+    for (const t of state.trades) {
+      const pnl = t.leg_pnl ?? 0;
+      const expiryShort = t.expiry_date ? (() => {
+        const m = t.expiry_date.match(/\d{4}-(\d{2})-(\d{2})/);
+        const mon = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        return m ? `${parseInt(m[2])} ${mon[parseInt(m[1])]}` : "—";
+      })() : "—";
+      const tr = el("tr", {},
+        el("td", { class: "td-strike" }, String(t.strike)),
+        el("td", { class: "td-expiry" }, expiryShort),
+        el("td", {},
+          el("span", { class: "leg-type " + t.option_type }, t.option_type)
+        ),
+        el("td", {}, String(Math.abs(t.qty))),
+        el("td", {}, t.entry_price != null ? `₹${t.entry_price.toFixed(2)}` : "—"),
+        el("td", { class: "td-time" }, t.open_time || "—"),
+        el("td", {}, t.exit_price != null ? `₹${t.exit_price.toFixed(2)}` : "—"),
+        el("td", { class: "td-time" }, t.close_time || "—"),
+        el("td", { class: colorClass(pnl) === "green" ? "td-green" : "td-red" }, fmt(pnl)),
+        el("td", {},
+          el("span", { class: "role-badge " + t.spread_role }, t.spread_role?.replace(/_/g, " ") ?? "—")
+        )
+      );
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    body.appendChild(table);
+
+    // Session Total uses authoritative P&L from session object (not sum of visible legs)
+    const summaryRow = el("div", { class: "metric-row", style: "margin-top:12px;padding-top:12px;border-top:1px solid var(--border);" },
+      el("span", { class: "metric-label" }, "Session Total"),
+      el("span", { class: "metric-value " + colorClass(sessionPnl) }, fmt(sessionPnl))
+    );
+    body.appendChild(summaryRow);
+  }
+
+  panel.appendChild(body);
+  return panel;
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────
+async function init() {
+  try {
+    const strategies = await apiFetch("/api/strategies");
+    state.strategies = strategies || [];
+
+    renderTabs();
+
+    // Select first active strategy
+    const first = state.strategies.find(s => s.status !== "coming_soon") || state.strategies[0];
+    if (first) {
+      await selectStrategy(first.id);
+    } else {
+      showMainError("No strategies found from API.");
+    }
+  } catch (err) {
+    // Show error in both sidebar and main
+    document.getElementById("sidebar-overall").innerHTML = `<div class="error-state" style="font-size:12px;">${err.message}</div>`;
+    showMainError(err.message);
+    document.getElementById("header-strategy-name").textContent = "Disconnected";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
