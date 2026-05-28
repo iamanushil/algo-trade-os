@@ -8,27 +8,223 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
   if (!canvas || typeof Chart === "undefined") return;
   if (_chartStore[canvasId]) { _chartStore[canvasId].destroy(); delete _chartStore[canvasId]; }
 
-  const spread = longStrike - shortStrike;
-  const step = spread <= 200 ? 10 : spread <= 500 ? 25 : 50;
-  const lo = shortStrike - spread - 100;
-  const hi = longStrike  + spread + 100;
-  const spots = [];
+  const spread    = longStrike - shortStrike;
+  const step      = spread <= 200 ? 10 : spread <= 500 ? 25 : 50;
+  const lo        = shortStrike - spread - 100;
+  const hi        = longStrike  + spread + 100;
+  const spots     = [];
   for (let s = lo; s <= hi; s += step) spots.push(s);
 
-  const pnls = spots.map(s => {
+  const breakeven = shortStrike + netCreditPerUnit;
+
+  function payoffAt(s) {
     if (s <= shortStrike) return netCreditPerUnit * qty;
     if (s <= longStrike)  return (netCreditPerUnit - (s - shortStrike)) * qty;
     return (netCreditPerUnit - spread) * qty;
-  });
+  }
 
+  const pnls    = spots.map(payoffAt);
   const posData = pnls.map((p, i) => ({ x: spots[i], y: p >= 0 ? p : null }));
   const negData = pnls.map((p, i) => ({ x: spots[i], y: p <  0 ? p : null }));
 
   const maxP = netCreditPerUnit * qty;
   const minP = (netCreditPerUnit - spread) * qty;
   const pad  = Math.abs(maxP - minP) * 0.18 || 1000;
-  const breakeven = shortStrike + netCreditPerUnit;
 
+  // Mouse position tracked per canvas
+  let _hoverX = null;
+
+  // ── Custom overlay plugin (key levels + hover tooltip) ──────
+  // All drawing happens in afterDraw so it survives Chart.js redraws.
+  const overlayPlugin = {
+    id: `overlay_${canvasId}`,
+    afterDraw(chart) {
+      const { ctx, chartArea: area, scales: { x: xScale, y: yScale } } = chart;
+      if (!area) return;
+
+      // ── Helpers ──
+      function vertLine(strike, color, label, dash = [4, 4]) {
+        const xPx = xScale.getPixelForValue(strike);
+        if (xPx < area.left || xPx > area.right) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash(dash);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(xPx, area.top);
+        ctx.lineTo(xPx, area.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = "bold 10px 'Inter', sans-serif";
+        ctx.fillStyle = color;
+        const tw = ctx.measureText(label).width;
+        const tx = Math.min(xPx + 4, area.right - tw - 4);
+        ctx.fillText(label, tx, area.top + 12);
+        ctx.restore();
+      }
+
+      function horizLine(y, color, dash = [3, 3]) {
+        const yPx = yScale.getPixelForValue(y);
+        if (yPx < area.top || yPx > area.bottom) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash(dash);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.moveTo(area.left, yPx);
+        ctx.lineTo(area.right, yPx);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── Zero baseline ──
+      horizLine(0, "rgba(129,140,248,0.28)", [2, 4]);
+
+      // ── Key levels ──
+      vertLine(shortStrike, "rgba(255,95,109,0.85)",  `↓ ${shortStrike.toLocaleString("en-IN")}  Short`);
+      vertLine(longStrike,  "rgba(0,212,170,0.85)",   `↑ ${longStrike.toLocaleString("en-IN")}  Long`);
+      if (breakeven > shortStrike && breakeven < longStrike) {
+        vertLine(breakeven, "rgba(129,140,248,0.85)", `BE ${breakeven.toLocaleString("en-IN")}`, [6, 3]);
+      }
+
+      // ── Spot price ──
+      if (currentSpot) {
+        const sxPx = xScale.getPixelForValue(currentSpot);
+        if (sxPx >= area.left && sxPx <= area.right) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 3]);
+          ctx.strokeStyle = "#f5a623";
+          ctx.lineWidth = 2;
+          ctx.moveTo(sxPx, area.top);
+          ctx.lineTo(sxPx, area.bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(sxPx, area.bottom, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#f5a623";
+          ctx.fill();
+          ctx.font = "bold 10px 'Inter', sans-serif";
+          ctx.fillStyle = "#f5a623";
+          ctx.fillText("Spot", sxPx + 5, area.top + 26);
+          ctx.restore();
+        }
+      }
+
+      // ── Hover crosshair + DhanHQ-style P&L tooltip ──
+      if (_hoverX != null && _hoverX >= area.left && _hoverX <= area.right) {
+        const niftyVal = xScale.getValueForPixel(_hoverX);
+        const pnl      = payoffAt(niftyVal);
+        const isProfit = pnl >= 0;
+        const pnlColor = isProfit ? "#00d4aa" : "#ff5f6d";
+
+        // Vertical crosshair
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.lineWidth = 1;
+        ctx.moveTo(_hoverX, area.top);
+        ctx.lineTo(_hoverX, area.bottom);
+        ctx.stroke();
+
+        // Dot on the payoff curve
+        const dotY = yScale.getPixelForValue(pnl);
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(_hoverX, dotY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = pnlColor;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(3,7,18,0.85)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // ── Tooltip box ──
+        const niftyLabel = `NIFTY ${Math.round(niftyVal).toLocaleString("en-IN")}`;
+        const pnlLabel   = (isProfit ? "+₹" : "−₹") +
+          Math.abs(pnl).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+        const pctLabel   = (isProfit ? "+" : "−") +
+          (Math.abs(pnl) / (Math.abs(minP) + Math.abs(maxP) || 1) * 100).toFixed(1) + "% P&L";
+
+        ctx.font = "500 10px 'Inter', sans-serif";
+        const nW = ctx.measureText(niftyLabel).width;
+        ctx.font = "800 14px 'Inter', sans-serif";
+        const pW = ctx.measureText(pnlLabel).width;
+        const boxW = Math.max(nW, pW) + 28;
+        const boxH = 52;
+
+        let boxX = _hoverX + 14;
+        if (boxX + boxW > area.right) boxX = _hoverX - boxW - 14;
+        let boxY = dotY - boxH / 2;
+        if (boxY < area.top + 4) boxY = area.top + 4;
+        if (boxY + boxH > area.bottom - 4) boxY = area.bottom - boxH - 4;
+
+        // Shadow
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur  = 12;
+        ctx.shadowOffsetY = 4;
+
+        // Box background
+        ctx.fillStyle = "rgba(3,7,18,0.95)";
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, 7);
+        else ctx.rect(boxX, boxY, boxW, boxH);
+        ctx.fill();
+
+        ctx.shadowColor = "transparent";
+        ctx.shadowBlur  = 0;
+
+        // Colored border
+        ctx.strokeStyle = pnlColor;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.stroke();
+
+        // Left accent bar
+        ctx.fillStyle = pnlColor;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(boxX, boxY + 8, 3, boxH - 16, 2);
+        else ctx.fillRect(boxX, boxY + 8, 3, boxH - 16);
+        ctx.fill();
+
+        // NIFTY level label (muted)
+        ctx.fillStyle = "#9ab0cc";
+        ctx.font = "500 10px 'Inter', sans-serif";
+        ctx.fillText(niftyLabel, boxX + 14, boxY + 17);
+
+        // P&L amount (color)
+        ctx.fillStyle = pnlColor;
+        ctx.font = "800 14px 'Inter', sans-serif";
+        ctx.fillText(pnlLabel, boxX + 14, boxY + 35);
+
+        // Percent label (muted, small)
+        ctx.fillStyle = "rgba(78,99,128,0.9)";
+        ctx.font = "500 9px 'Inter', sans-serif";
+        ctx.fillText(pctLabel, boxX + 14, boxY + 48);
+
+        ctx.restore();
+
+        // X-axis price marker
+        const markerW = 64;
+        const markerH = 16;
+        const mx = _hoverX - markerW / 2;
+        const my = area.bottom + 2;
+        ctx.save();
+        ctx.fillStyle = pnlColor;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(mx, my, markerW, markerH, 3);
+        else ctx.fillRect(mx, my, markerW, markerH);
+        ctx.fill();
+        ctx.fillStyle = "#030712";
+        ctx.font = "bold 9px 'Inter', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(Math.round(niftyVal).toLocaleString("en-IN"), _hoverX, my + 11);
+        ctx.restore();
+      }
+    },
+  };
+
+  // ── Chart ──────────────────────────────────────────────────
   _chartStore[canvasId] = new Chart(canvas, {
     type: "line",
     data: {
@@ -37,7 +233,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
           label: "Profit zone",
           data: posData,
           borderColor: "#00d4aa",
-          backgroundColor: "rgba(0,212,170,0.1)",
+          backgroundColor: "rgba(0,212,170,0.10)",
           borderWidth: 2.5,
           fill: true,
           pointRadius: 0,
@@ -48,7 +244,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
           label: "Loss zone",
           data: negData,
           borderColor: "#ff5f6d",
-          backgroundColor: "rgba(255,95,109,0.1)",
+          backgroundColor: "rgba(255,95,109,0.10)",
           borderWidth: 2.5,
           fill: true,
           pointRadius: 0,
@@ -63,22 +259,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       animation: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          backgroundColor: "rgba(3,7,18,0.92)",
-          borderColor: "rgba(255,255,255,0.12)",
-          borderWidth: 1,
-          titleColor: "#9ab0cc",
-          bodyColor: "#e4eaf6",
-          padding: 10,
-          callbacks: {
-            label: ctx => {
-              const v = ctx.parsed.y;
-              if (v == null) return null;
-              return (v >= 0 ? "+₹" : "−₹") + Math.abs(v).toLocaleString("en-IN", { minimumFractionDigits: 2 });
-            },
-            title: ctx => `NIFTY ${ctx[0].parsed.x.toLocaleString("en-IN")}`,
-          },
-        },
+        tooltip: { enabled: false }, // replaced by custom hover
       },
       scales: {
         x: {
@@ -105,88 +286,22 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         },
       },
     },
+    plugins: [overlayPlugin],
   });
 
-  // Draw key level overlays after chart renders
-  setTimeout(() => {
+  // ── Mouse tracking ─────────────────────────────────────────
+  canvas.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    _hoverX = e.clientX - rect.left;
     const ch = _chartStore[canvasId];
-    if (!ch) return;
-    const area = ch.chartArea;
-    if (!area) return;
-    const ctx2 = canvas.getContext("2d");
-    const xScale = ch.scales.x;
-    const yScale = ch.scales.y;
+    if (ch) ch.draw();
+  });
 
-    function drawVertLine(strike, color, label, style = [4, 4]) {
-      const xPx = xScale.getPixelForValue(strike);
-      if (xPx < area.left || xPx > area.right) return;
-      ctx2.save();
-      ctx2.beginPath();
-      ctx2.setLineDash(style);
-      ctx2.strokeStyle = color;
-      ctx2.lineWidth = 1.5;
-      ctx2.moveTo(xPx, area.top);
-      ctx2.lineTo(xPx, area.bottom);
-      ctx2.stroke();
-      // Label tag
-      ctx2.setLineDash([]);
-      ctx2.font = "bold 10px 'Inter', sans-serif";
-      ctx2.fillStyle = color;
-      const textW = ctx2.measureText(label).width;
-      const tagX = Math.min(xPx + 4, area.right - textW - 4);
-      ctx2.fillText(label, tagX, area.top + 12);
-      ctx2.restore();
-    }
-
-    function drawHorizLine(y, color, style = [3, 3]) {
-      const yPx = yScale.getPixelForValue(y);
-      if (yPx < area.top || yPx > area.bottom) return;
-      ctx2.save();
-      ctx2.beginPath();
-      ctx2.setLineDash(style);
-      ctx2.strokeStyle = color;
-      ctx2.lineWidth = 1;
-      ctx2.moveTo(area.left, yPx);
-      ctx2.lineTo(area.right, yPx);
-      ctx2.stroke();
-      ctx2.restore();
-    }
-
-    // Zero baseline
-    drawHorizLine(0, "rgba(129,140,248,0.30)", [2, 4]);
-
-    // Key vertical levels
-    drawVertLine(shortStrike, "rgba(255,95,109,0.8)", `↓${shortStrike.toLocaleString("en-IN")}`);
-    drawVertLine(longStrike,  "rgba(0,212,170,0.8)",  `↑${longStrike.toLocaleString("en-IN")}`);
-    if (breakeven > shortStrike && breakeven < longStrike) {
-      drawVertLine(breakeven, "rgba(129,140,248,0.80)", `BE ${breakeven.toLocaleString("en-IN")}`, [6, 3]);
-    }
-
-    // Current spot
-    if (currentSpot) {
-      const sxPx = xScale.getPixelForValue(currentSpot);
-      if (sxPx >= area.left && sxPx <= area.right) {
-        ctx2.save();
-        ctx2.beginPath();
-        ctx2.setLineDash([5, 3]);
-        ctx2.strokeStyle = "#f5a623";
-        ctx2.lineWidth = 2;
-        ctx2.moveTo(sxPx, area.top);
-        ctx2.lineTo(sxPx, area.bottom);
-        ctx2.stroke();
-        // Dot on x-axis
-        ctx2.setLineDash([]);
-        ctx2.beginPath();
-        ctx2.arc(sxPx, area.bottom, 4, 0, Math.PI * 2);
-        ctx2.fillStyle = "#f5a623";
-        ctx2.fill();
-        ctx2.font = "bold 10px 'Inter', sans-serif";
-        ctx2.fillStyle = "#f5a623";
-        ctx2.fillText("Spot", sxPx + 5, area.top + 26);
-        ctx2.restore();
-      }
-    }
-  }, 60);
+  canvas.addEventListener("mouseleave", () => {
+    _hoverX = null;
+    const ch = _chartStore[canvasId];
+    if (ch) ch.draw();
+  });
 }
 
 // ── Session payoff spot markers ───────────────────────────────
@@ -196,10 +311,10 @@ function _addSessionSpotMarkers(canvasId, spotEntry, spotClose, shortStrike, lon
   if (!canvas) return;
   const ch = _chartStore[canvasId];
   if (!ch) return;
-  const area = ch.chartArea;
+  const area   = ch.chartArea;
   const xScale = ch.scales.x;
   const yScale = ch.scales.y;
-  const ctx = canvas.getContext("2d");
+  const ctx    = canvas.getContext("2d");
   const spread = longStrike - shortStrike;
 
   function payoffAt(s) {
