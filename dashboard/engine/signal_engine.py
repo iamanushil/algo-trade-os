@@ -27,6 +27,18 @@ def _ist_now() -> str:
     return datetime.now(_IST).replace(tzinfo=None).isoformat(timespec="seconds")
 
 
+def _next_weekly_expiry() -> str:
+    """Next NIFTY weekly expiry date (Tuesdays since NSE 2024 change)."""
+    now = datetime.now(_IST)
+    days_to_tuesday = (1 - now.weekday()) % 7  # Tuesday = weekday 1
+    if days_to_tuesday == 0:
+        # Today is Tuesday — if past 3:30 PM IST use next week
+        if now.hour > 15 or (now.hour == 15 and now.minute >= 30):
+            days_to_tuesday = 7
+    expiry = (now + timedelta(days=days_to_tuesday)).date()
+    return expiry.isoformat()
+
+
 def _fetch_spot() -> tuple[float, float]:
     """Return (spot_price, day_change_pct). Raises on failure."""
     ticker = yf.Ticker("^NSEI")
@@ -201,6 +213,7 @@ def generate_signal(strategy_dir: str, capital: float = 120_000) -> dict[str, An
             },
             "open_interest_note": None,
             "entry_window": "15:48 – 16:17 IST",
+            "expiry": _next_weekly_expiry(),
             "updated_at": updated_at,
             "data_source": "unavailable",
             "error": "yfinance not available",
@@ -231,6 +244,7 @@ def generate_signal(strategy_dir: str, capital: float = 120_000) -> dict[str, An
             },
             "open_interest_note": None,
             "entry_window": "15:48 – 16:17 IST",
+            "expiry": _next_weekly_expiry(),
             "updated_at": updated_at,
             "data_source": "yfinance_only",
             "error": error,
@@ -304,6 +318,7 @@ def generate_signal(strategy_dir: str, capital: float = 120_000) -> dict[str, An
         },
         "open_interest_note": oi_note,
         "entry_window": "15:48 – 16:17 IST",
+        "expiry": _next_weekly_expiry(),
         "updated_at": updated_at,
         "data_source": data_source,
         "error": error,

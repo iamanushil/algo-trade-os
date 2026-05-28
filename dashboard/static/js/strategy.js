@@ -133,12 +133,27 @@ function renderStrategyDropdown() {
       });
     }
 
-    if (isActive) label.textContent = s.name;
+    if (isActive) {
+      label.textContent = s.name;
+      _updateSpreadTypeChip(s);
+    }
   }
 
   // If no active strategy label was set yet
   if (!state.activeStrategyId && state.strategies.length) {
     label.textContent = state.strategies[0].name;
+  }
+}
+
+function _updateSpreadTypeChip(strat) {
+  const chip = document.getElementById("header-spread-type");
+  if (!chip) return;
+  const text = _buildStratTagText(strat);
+  if (text) {
+    chip.textContent = text;
+    chip.style.display = "";
+  } else {
+    chip.style.display = "none";
   }
 }
 

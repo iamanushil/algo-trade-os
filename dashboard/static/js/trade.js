@@ -48,17 +48,32 @@ function buildTradeDetailPanel() {
     );
     table.appendChild(thead);
 
-    const tbody = el("tbody", {});
+    // Group trades by open_time to identify spread pairs
+    const _timeGroups = [];
+    const _seenTimes = [];
     for (const t of state.trades) {
+      const ot = t.open_time || "__none__";
+      if (!_seenTimes.includes(ot)) {
+        _seenTimes.push(ot);
+        _timeGroups.push({ time: ot, trades: [] });
+      }
+      _timeGroups.find(g => g.time === ot).trades.push(t);
+    }
+    const _multiGroup = _timeGroups.length > 1;
+
+    function _fmtExpiryShort(t) {
+      if (!t.expiry_date) return "—";
+      const m = t.expiry_date.match(/\d{4}-(\d{2})-(\d{2})/);
+      const mon = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      return m ? `${parseInt(m[2])} ${mon[parseInt(m[1])]}` : "—";
+    }
+
+    function _buildLegRow(t) {
       const pnl = t.leg_pnl ?? 0;
-      const expiryShort = t.expiry_date ? (() => {
-        const m = t.expiry_date.match(/\d{4}-(\d{2})-(\d{2})/);
-        const mon = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        return m ? `${parseInt(m[2])} ${mon[parseInt(m[1])]}` : "—";
-      })() : "—";
+      const expiryShort = _fmtExpiryShort(t);
       const sideVal = (t.side || "").toUpperCase();
       const sideClass = sideVal === "SELL" ? "leg-action-tag sell" : "leg-action-tag buy";
-      const tr = el("tr", {},
+      return el("tr", {},
         el("td", {}, sideVal ? el("span", { class: sideClass }, sideVal) : "—"),
         el("td", { class: "td-strike" }, String(t.strike)),
         el("td", { class: "td-expiry" }, expiryShort),
@@ -75,7 +90,22 @@ function buildTradeDetailPanel() {
           el("span", { class: "role-badge " + t.spread_role }, t.spread_role?.replace(/_/g, " ") ?? "—")
         )
       );
-      tbody.appendChild(tr);
+    }
+
+    const tbody = el("tbody", {});
+    if (_multiGroup) {
+      _timeGroups.forEach((grp, idx) => {
+        const timeLabel = grp.time === "__none__" ? "—" : grp.time;
+        const headerRow = el("tr", { class: "spread-group-header" },
+          el("td", { colspan: "11", class: "spread-group-label" },
+            `Spread ${idx + 1} · entered ${timeLabel}`
+          )
+        );
+        tbody.appendChild(headerRow);
+        for (const t of grp.trades) tbody.appendChild(_buildLegRow(t));
+      });
+    } else {
+      for (const t of state.trades) tbody.appendChild(_buildLegRow(t));
     }
     table.appendChild(tbody);
 
@@ -123,18 +153,58 @@ function buildTradeDetailPanel() {
   const shorts = state.trades.filter(t => (t.spread_role || "").includes("SHORT"));
   const longs  = state.trades.filter(t => (t.spread_role || "").includes("LONG"));
   if (shorts.length && longs.length) {
-    const shortStrike = shorts[0].strike;
-    const longStrike  = longs[0].strike;
-    const nc          = shorts[0].entry_price - longs[0].entry_price;
-    const qty         = Math.abs(shorts[0].qty);
+    // Build spread groups keyed by open_time (same grouping logic as the table)
+    const _sgTimes = [];
+    const _sgMap   = {};
+    for (const t of state.trades) {
+      const ot = t.open_time || "__none__";
+      if (!_sgMap[ot]) { _sgMap[ot] = { shorts: [], longs: [] }; _sgTimes.push(ot); }
+      if ((t.spread_role || "").includes("SHORT")) _sgMap[ot].shorts.push(t);
+      else if ((t.spread_role || "").includes("LONG")) _sgMap[ot].longs.push(t);
+    }
+
+    // Build spread descriptors: pair 1st SHORT with 1st LONG per time group,
+    // then fall back to positional pairing if a group has unbalanced legs.
+    const spreadGroups = [];
+    for (const ot of _sgTimes) {
+      const grp = _sgMap[ot];
+      const count = Math.min(grp.shorts.length, grp.longs.length);
+      for (let i = 0; i < count; i++) {
+        spreadGroups.push({ short: grp.shorts[i], long: grp.longs[i] });
+      }
+    }
+
     const spotEntry   = shorts[0].nifty_spot_entry ?? null;
     const spotClose   = shorts[0].nifty_spot_close ?? null;
-    const displaySpot = spotClose ?? spotEntry ?? (shortStrike + (longStrike - shortStrike) / 2);
-    setTimeout(() => {
-      drawBearCallPayoff("session-payoff-chart", shortStrike, longStrike, nc, qty, displaySpot, false);
-      setTimeout(() => _addSessionSpotMarkers("session-payoff-chart", spotEntry, spotClose, shortStrike, longStrike, nc, qty), 120);
-      if (sessionPnl != null) setTimeout(() => _addRealizedLine("session-payoff-chart", sessionPnl), 130);
-    }, 0);
+    const allStrikes  = [...shorts.map(s => s.strike), ...longs.map(l => l.strike)];
+    const midStrike   = (Math.min(...allStrikes) + Math.max(...allStrikes)) / 2;
+    const displaySpot = spotClose ?? spotEntry ?? midStrike;
+
+    if (spreadGroups.length === 1) {
+      // Single spread — use the existing detailed chart (preserves hover, spot markers)
+      const sp = spreadGroups[0];
+      const shortStrike = sp.short.strike;
+      const longStrike  = sp.long.strike;
+      const nc          = sp.short.entry_price - sp.long.entry_price;
+      const qty         = Math.abs(sp.short.qty);
+      setTimeout(() => {
+        drawBearCallPayoff("session-payoff-chart", shortStrike, longStrike, nc, qty, displaySpot, false);
+        setTimeout(() => _addSessionSpotMarkers("session-payoff-chart", spotEntry, spotClose, shortStrike, longStrike, nc, qty), 120);
+        if (sessionPnl != null) setTimeout(() => _addRealizedLine("session-payoff-chart", sessionPnl), 130);
+      }, 0);
+    } else {
+      // Multiple spreads — draw combined payoff with individual overlays
+      const spreadsArr = spreadGroups.map(sp => ({
+        shortStrike: sp.short.strike,
+        longStrike:  sp.long.strike,
+        nc:          sp.short.entry_price - sp.long.entry_price,
+        qty:         Math.abs(sp.short.qty),
+      }));
+      setTimeout(() => {
+        drawMultiSpreadPayoff("session-payoff-chart", spreadsArr, displaySpot, false);
+        if (sessionPnl != null) setTimeout(() => _addRealizedLine("session-payoff-chart", sessionPnl), 130);
+      }, 0);
+    }
   }
 
   return panel;

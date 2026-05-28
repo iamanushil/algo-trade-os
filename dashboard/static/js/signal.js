@@ -19,13 +19,10 @@ async function loadSignal(strategyId) {
 }
 
 function renderSignalSkeleton(section) {
-  const skelN = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
-  const skelT = skelN ? `<span class="strat-name-tag">${skelN}</span>` : "";
   section.innerHTML = `
     <div class="signal-card">
       <div class="signal-card-header">
         <span class="signal-card-title">Next Signal</span>
-        ${skelT}
         <div class="signal-refresh" style="margin-left:auto;">
           <span class="signal-updated text-muted">Loading…</span>
         </div>
@@ -70,6 +67,12 @@ function renderSignalData(section, d) {
   const pcrStr = d.pcr != null ? d.pcr.toFixed(2) : "—";
   const maxPainStr = d.max_pain != null ? "₹" + d.max_pain.toLocaleString("en-IN") : "—";
   const entryWindow = d.entry_window || "—";
+  const expiryStr = (() => {
+    if (!d.expiry) return "—";
+    const [y, m, day] = d.expiry.split("-").map(Number);
+    const mon = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return `${day} ${mon[m]} ${y}`;
+  })();
 
   const ss = d.suggested_spread;
   const hasSpread = ss && ss.short_strike && ss.long_strike;
@@ -176,14 +179,10 @@ function renderSignalData(section, d) {
     `;
   }
 
-  const sigStratName = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
-  const sigStratTag  = sigStratName ? `<span class="strat-name-tag">${sigStratName}</span>` : "";
-
   section.innerHTML = `
     <div class="signal-card" id="signal-card-inner" style="border-left-color:${borderColor};">
       <div class="signal-card-header">
         <span class="signal-card-title">NEXT SIGNAL</span>
-        ${sigStratTag}
         <div class="signal-refresh">
           <span class="signal-updated" id="signal-updated-ts">Updated ${updated}</span>
           <button class="signal-refresh-btn" id="signal-refresh-btn" title="Refresh signal">↻ Refresh</button>
@@ -205,6 +204,11 @@ function renderSignalData(section, d) {
           </div>
         ` : ""}
         <div class="signal-market-bar">
+          <div class="signal-market-item">
+            <span class="signal-market-label">Expiry</span>
+            <span class="signal-market-value">${expiryStr}</span>
+          </div>
+          <div class="signal-market-sep"></div>
           <div class="signal-market-item">
             <span class="signal-market-label">Spot (NIFTY)</span>
             <span id="live-signal-spot" class="signal-market-value">${spotStr}${spotChangeStr ? `<span style="font-size:10px;font-weight:500;color:var(--muted);margin-left:4px;">${spotChangeStr}</span>` : ""}</span>
@@ -258,13 +262,10 @@ function renderSignalData(section, d) {
 }
 
 function renderSignalError(section, msg) {
-  const errN = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
-  const errT = errN ? `<span class="strat-name-tag">${errN}</span>` : "";
   section.innerHTML = `
     <div class="signal-card">
       <div class="signal-card-header">
         <span class="signal-card-title">Next Signal</span>
-        ${errT}
         <div class="signal-refresh">
           <button class="signal-refresh-btn" id="signal-refresh-btn">↻ Refresh</button>
         </div>

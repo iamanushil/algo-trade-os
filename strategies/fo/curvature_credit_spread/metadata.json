@@ -2,6 +2,7 @@
   "id": "curvature_credit_spread",
   "name": "Curvature Credit Spread",
   "type": "Options F&O",
+  "spread_type": "Bear Call Spread",
   "description": "Overnight bear call spread on Nifty weekly CE options. Entry window 15:48–16:17, adjustment window 17:00–20:30. Structured to capture overnight premium decay.",
   "capital": 120000,
   "symbol": "NIFTY",

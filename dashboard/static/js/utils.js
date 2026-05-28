@@ -67,3 +67,16 @@ function html(str) {
   d.innerHTML = str;
   return d;
 }
+
+// ── Strategy label helpers ───────────────────────────────────
+// Returns "Bear Call Spread · Curvature" from {spread_type, name}
+function _buildStratTagText(strat) {
+  if (!strat) return "";
+  return strat.spread_type || strat.name || "";
+}
+
+// Returns a DOM span.strat-name-tag element
+function _buildStratTag(strat) {
+  const text = _buildStratTagText(strat);
+  return text ? el("span", { class: "strat-name-tag" }, text) : null;
+}

@@ -265,6 +265,22 @@
 
 .no-detail-msg { text-align: center; color: var(--muted); padding: 28px; font-size: 13px; font-weight: 500; }
 
+/* ── Spread group headers in the leg table ── */
+.spread-group-header td {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--accent);
+  border-bottom: none;
+  background: transparent;
+  text-align: left;
+}
+.spread-group-label {
+  display: inline-block;
+}
+
 /* ── Light theme overrides for position.css ── */
 [data-theme="light"] .leg-row:hover {
   border-color: rgba(0, 0, 0, 0.14);

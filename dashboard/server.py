@@ -234,6 +234,7 @@ def list_strategies():
             "id": sid,
             "name": meta.get("name", sid),
             "type": meta.get("type", "fo"),
+            "spread_type": meta.get("spread_type"),
             "status": meta.get("status", "active"),
         })
     return jsonify(result)
