@@ -226,6 +226,9 @@ function buildTradeDetailPanel() {
 
     body.appendChild(table);
 
+    // Exit analysis card (why was the position closed when it was?)
+    body.appendChild(_buildExitAnalysis(state.trades, session));
+
     // P&L breakdown card
     body.appendChild(_buildPnlBreakdown(state.trades, sessionPnl));
   }
@@ -285,6 +288,135 @@ function buildTradeDetailPanel() {
   }
 
   return panel;
+}
+
+function _buildExitAnalysis(trades, session) {
+  const fmtP = v => "₹" + Math.abs(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Group trades by open_time (one group = one spread pair)
+  const groups = [], seenTimes = [];
+  for (const t of trades) {
+    const ot = t.open_time || "__none__";
+    if (!seenTimes.includes(ot)) { seenTimes.push(ot); groups.push({ time: ot, trades: [] }); }
+    groups.find(g => g.time === ot).trades.push(t);
+  }
+
+  const wrap = el("div", { class: "exit-analysis-card" });
+  wrap.appendChild(el("div", { class: "exit-analysis-title" }, "Exit Analysis — Why was this position closed?"));
+
+  const items = el("div", { class: "exit-analysis-items" });
+
+  groups.forEach((grp, idx) => {
+    const short = grp.trades.find(t => (t.spread_role || "").includes("SHORT"));
+    const long  = grp.trades.find(t => (t.spread_role || "").includes("LONG"));
+    if (!short) return;
+
+    const entryPrice   = short.entry_price ?? 1;
+    const exitPrice    = short.exit_price  ?? 0;
+    const ratio        = exitPrice / Math.max(entryPrice, 0.01);
+    const heldToExpiry = short.close_date === short.expiry_date;
+    const closeAtZero  = exitPrice <= 1.0;
+
+    let reason, detail, cls;
+
+    if (heldToExpiry && closeAtZero) {
+      reason = "Expired worthless — full premium kept";
+      detail = `${short.strike} CE expired at ₹${exitPrice.toFixed(2)} on expiry day. NIFTY stayed below the short strike — the option went to zero and the entire net premium was retained.`;
+      cls = "reason-expiry";
+    } else if (heldToExpiry && !closeAtZero) {
+      reason = "Settled at expiry — option was in-the-money";
+      detail = `${short.strike} CE settled at ₹${exitPrice.toFixed(2)} at expiry. NIFTY closed above the short strike — the short leg settled with intrinsic value, causing a loss on this leg.`;
+      cls = "reason-loss";
+    } else if (ratio > 1.1) {
+      const pctUp = ((ratio - 1) * 100).toFixed(0);
+      reason = `Defensive roll — NIFTY moved toward the strike (+${pctUp}% reprice)`;
+      detail = `${short.strike} CE was sold at ₹${entryPrice.toFixed(2)} but had to be bought back at ₹${exitPrice.toFixed(2)} — the option repriced ${pctUp}% higher because NIFTY moved toward the short strike. This is a defensive close. The strategy almost always immediately re-opened a new spread at higher strikes (same session or next) to collect fresh premium.`;
+      cls = "reason-rolled";
+    } else if (ratio < 0.55) {
+      const pctDecay = ((1 - ratio) * 100).toFixed(0);
+      reason = `Profit booked — ${pctDecay}% of premium decayed`;
+      detail = `${short.strike} CE fell from ₹${entryPrice.toFixed(2)} to ₹${exitPrice.toFixed(2)} — ${pctDecay}% of premium decayed (NIFTY stayed well below the strike). Position closed early to lock in gains rather than waiting for full expiry.`;
+      cls = "reason-profit";
+    } else {
+      const pctDecay = ((1 - ratio) * 100).toFixed(0);
+      reason = `Partial decay captured (${pctDecay}% premium lost)`;
+      detail = `${short.strike} CE moved from ₹${entryPrice.toFixed(2)} to ₹${exitPrice.toFixed(2)}. Some time decay was captured before closing. Exit may have been part of a roll to adjust the position.`;
+      cls = "reason-partial";
+    }
+
+    const spreadLabel = groups.length > 1
+      ? `Spread ${idx + 1} · ${short.strike}/${long ? long.strike : "—"} CE`
+      : `${short.strike}/${long ? long.strike : "—"} CE`;
+
+    const shortLegPnl = short.leg_pnl ?? 0;
+    const longLegPnl  = long ? (long.leg_pnl ?? 0) : 0;
+    const spreadTotal = shortLegPnl + longLegPnl;
+
+    const item = el("div", { class: `exit-analysis-item ${cls}` },
+      el("div", { class: "exit-analysis-row" },
+        el("div", { class: "exit-analysis-left" },
+          el("div", { class: "exit-analysis-spread" }, spreadLabel),
+          el("div", { class: "exit-analysis-reason" }, reason),
+          el("div", { class: "exit-analysis-detail" }, detail)
+        ),
+        el("div", { class: "exit-analysis-prices" },
+          el("div", { class: "exit-price-block" },
+            el("div", { class: "exit-price-label2" }, "SHORT leg"),
+            el("div", { class: "exit-price-compare-row" },
+              el("span", { class: "exit-price-entry" }, `₹${entryPrice.toFixed(2)}`),
+              el("span", { class: "exit-price-arrow " + (ratio > 1 ? "up" : "down") }, ratio > 1 ? "↑" : "↓"),
+              el("span", { class: "exit-price-exit " + (ratio > 1 ? "red" : "green") }, `₹${exitPrice.toFixed(2)}`)
+            ),
+            el("div", { class: "exit-price-pnl " + (shortLegPnl >= 0 ? "green" : "red") },
+              (shortLegPnl >= 0 ? "+" : "−") + fmtP(shortLegPnl)
+            )
+          ),
+          long ? el("div", { class: "exit-price-block" },
+            el("div", { class: "exit-price-label2" }, "LONG leg"),
+            el("div", { class: "exit-price-compare-row" },
+              el("span", { class: "exit-price-entry" }, `₹${(long.entry_price ?? 0).toFixed(2)}`),
+              el("span", { class: "exit-price-arrow " + ((long.exit_price ?? 0) > (long.entry_price ?? 0) ? "up" : "down") },
+                (long.exit_price ?? 0) > (long.entry_price ?? 0) ? "↑" : "↓"
+              ),
+              el("span", { class: "exit-price-exit " + (longLegPnl >= 0 ? "green" : "red") },
+                `₹${(long.exit_price ?? 0).toFixed(2)}`
+              )
+            ),
+            el("div", { class: "exit-price-pnl " + (longLegPnl >= 0 ? "green" : "red") },
+              (longLegPnl >= 0 ? "+" : "−") + fmtP(longLegPnl)
+            )
+          ) : null,
+          el("div", { class: "exit-price-block exit-price-total" },
+            el("div", { class: "exit-price-label2" }, "Spread P&L"),
+            el("div", { class: "exit-price-pnl " + (spreadTotal >= 0 ? "green" : "red") },
+              (spreadTotal >= 0 ? "+" : "−") + fmtP(spreadTotal)
+            )
+          )
+        )
+      )
+    );
+    items.appendChild(item);
+  });
+
+  wrap.appendChild(items);
+
+  // Overall narrative
+  const exitType = session?.exit_type;
+  const narratives = {
+    held_to_expiry: "Full theta decay captured — position held to expiry and both options settled worthless. No early exit cost. This is the ideal outcome for a credit spread.",
+    rolled:         "NIFTY moved toward the short strike, threatening the position. The spread was closed early (at a loss on that leg) and a new spread was re-opened at higher strikes to collect fresh credit and reset the risk. This is the defensive roll pattern — a loss on one leg is offset by the new credit received.",
+    profit_booked:  "Premium decayed significantly before expiry. Position was closed early to lock in gains — the remaining time value was small enough that the risk of holding to expiry outweighed the benefit.",
+    early_exit:     "Position closed before expiry. Based on the exit prices, this appears to be a partial unwind or position adjustment.",
+  };
+  const narrative = narratives[exitType];
+  if (narrative) {
+    wrap.appendChild(el("div", { class: "exit-analysis-narrative" },
+      el("span", { class: "exit-analysis-narrative-label" }, "Why: "),
+      narrative
+    ));
+  }
+
+  return wrap;
 }
 
 function _buildPnlBreakdown(trades, sessionPnl) {
