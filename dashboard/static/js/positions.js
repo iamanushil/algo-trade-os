@@ -88,6 +88,10 @@ function buildActivePositionPanel() {
   const payoffCanvas = el("canvas", { id: "active-payoff-chart" });
   payoffWrap.appendChild(payoffCanvas);
   body.appendChild(payoffWrap);
+  body.appendChild(el("div", { class: "chart-note-muted pos-payoff-note" },
+    "Orange dot = your position at current NIFTY · Hover chart to see P&L at any level · ",
+    el("em", {}, "Actual exit today will differ slightly — options still carry time value, so you'd pay a small premium over intrinsic value to close early")
+  ));
 
   panel.appendChild(body);
 

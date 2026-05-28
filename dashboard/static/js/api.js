@@ -82,9 +82,21 @@ function _updateActivePosLiveBar(spot) {
   if (!shorts.length || !longs.length) return;
 
   const shortStrike = shorts[0].strike;
+  const longStrike  = longs[0].strike;
   const nc          = shorts[0].entry_price - longs[0].entry_price;
+  const qty         = Math.abs(shorts[0].qty);
+  const spread      = longStrike - shortStrike;
   const breakeven   = shortStrike + nc;
   const fmt2        = n => n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
+
+  // Theoretical P&L at expiry if NIFTY stays exactly here
+  let theoreticalPnl;
+  if (spot <= shortStrike)     theoreticalPnl = nc * qty;
+  else if (spot <= longStrike) theoreticalPnl = (nc - (spot - shortStrike)) * qty;
+  else                         theoreticalPnl = (nc - spread) * qty;
+  const tIsProfit = theoreticalPnl >= 0;
+  const tPnlStr = (tIsProfit ? "+₹" : "−₹") +
+    Math.abs(theoreticalPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
   let statusCls, statusLabel, distText;
   if (spot < shortStrike - 50) {
@@ -110,6 +122,9 @@ function _updateActivePosLiveBar(spot) {
     <span class="live-bar-sep"></span>
     <span class="live-bar-dist">${distText}</span>
     <span class="live-bar-status ${statusCls}">${statusLabel}</span>
+    <span class="live-bar-sep"></span>
+    <span class="live-bar-pnl-label">If held to expiry</span>
+    <span class="live-bar-pnl-val ${tIsProfit ? "green" : "red"}">${tPnlStr}</span>
   `;
 }
 

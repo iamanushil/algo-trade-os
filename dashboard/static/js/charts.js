@@ -166,10 +166,21 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
           ctx.lineTo(spotXPx, area.bottom);
           ctx.stroke();
           ctx.setLineDash([]);
+          // Bottom tick
           ctx.beginPath();
           ctx.arc(spotXPx, area.bottom, 4, 0, Math.PI * 2);
           ctx.fillStyle = "#f5a623";
           ctx.fill();
+          // Dot on payoff curve at live spot (shows "you are here")
+          const pnlAtLiveSpot = payoffAt(liveSpot);
+          const spotCurveY = yScale.getPixelForValue(pnlAtLiveSpot);
+          ctx.beginPath();
+          ctx.arc(spotXPx, spotCurveY, 6, 0, Math.PI * 2);
+          ctx.fillStyle = "#f5a623";
+          ctx.fill();
+          ctx.strokeStyle = isLight ? "rgba(255,255,255,0.85)" : "rgba(3,7,18,0.70)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
           ctx.restore();
         }
       }
@@ -421,7 +432,8 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
   });
 
   // Store spot mutably so live NIFTY updates can move the line
-  _chartStore[canvasId]._spot = currentSpot;
+  _chartStore[canvasId]._spot    = currentSpot;
+  _chartStore[canvasId]._payoffAt = payoffAt;
 
   // ── Mouse tracking ─────────────────────────────────────────
   canvas.addEventListener("mousemove", e => {

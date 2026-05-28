@@ -196,6 +196,24 @@
 .live-bar-status.watch   { background: var(--gold-bg);  color: var(--gold);  border: 1px solid var(--gold-border); }
 .live-bar-status.caution { background: rgba(245,166,35,0.10); color: #ff9f4a; border: 1px solid rgba(245,135,0,0.30); }
 .live-bar-status.danger  { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); box-shadow: 0 0 10px rgba(255,95,109,0.22); }
+.live-bar-pnl-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.live-bar-pnl-val {
+  font-size: 13px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+.live-bar-pnl-val.green { color: var(--green); }
+.live-bar-pnl-val.red   { color: var(--red); }
+.pos-payoff-note { margin-top: 6px; }
 
 /* ── Payoff chart (full-width, taller) ── */
 .pos-payoff-wrap {
