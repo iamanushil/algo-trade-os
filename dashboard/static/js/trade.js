@@ -33,6 +33,7 @@ function buildTradeDetailPanel() {
     const thead = el("thead",
       {},
       el("tr", {},
+        el("th", {}, "Side"),
         el("th", {}, "Strike"),
         el("th", {}, "Expiry"),
         el("th", {}, "Type"),
@@ -55,7 +56,10 @@ function buildTradeDetailPanel() {
         const mon = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
         return m ? `${parseInt(m[2])} ${mon[parseInt(m[1])]}` : "—";
       })() : "—";
+      const sideVal = (t.side || "").toUpperCase();
+      const sideClass = sideVal === "SELL" ? "leg-action-tag sell" : "leg-action-tag buy";
       const tr = el("tr", {},
+        el("td", {}, sideVal ? el("span", { class: sideClass }, sideVal) : "—"),
         el("td", { class: "td-strike" }, String(t.strike)),
         el("td", { class: "td-expiry" }, expiryShort),
         el("td", {},
@@ -127,8 +131,9 @@ function buildTradeDetailPanel() {
     const spotClose   = shorts[0].nifty_spot_close ?? null;
     const displaySpot = spotClose ?? spotEntry ?? (shortStrike + (longStrike - shortStrike) / 2);
     setTimeout(() => {
-      drawBearCallPayoff("session-payoff-chart", shortStrike, longStrike, nc, qty, displaySpot);
+      drawBearCallPayoff("session-payoff-chart", shortStrike, longStrike, nc, qty, displaySpot, false);
       setTimeout(() => _addSessionSpotMarkers("session-payoff-chart", spotEntry, spotClose, shortStrike, longStrike, nc, qty), 120);
+      if (sessionPnl != null) setTimeout(() => _addRealizedLine("session-payoff-chart", sessionPnl), 130);
     }, 0);
   }
 

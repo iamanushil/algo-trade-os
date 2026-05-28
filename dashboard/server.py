@@ -192,6 +192,7 @@ def _serialise_trade(t: dict) -> dict:
         "close_date": _serialise_date(t.get("close_date")),
         "close_time": t.get("close_time", ""),
         "spread_role": t.get("spread_role"),
+        "side": t.get("side") or ("SELL" if "SHORT" in (t.get("spread_role") or "") else "BUY" if t.get("spread_role") else None),
         "nifty_spot_entry": t.get("nifty_spot_entry"),
         "nifty_spot_close": t.get("nifty_spot_close"),
     }

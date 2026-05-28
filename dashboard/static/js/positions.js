@@ -18,8 +18,10 @@ function buildActivePositionPanel() {
       }, `${metrics.dte}d left`)
     : null;
 
+  const stratName = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
   panel.appendChild(el("div", { class: "panel-header" },
     el("span", { class: "panel-title" }, "Active Position"),
+    stratName ? el("span", { class: "strat-name-tag" }, stratName) : null,
     el("span", { class: "badge-active" }, "ACTIVE"),
     expiryInfo,
     dteTag

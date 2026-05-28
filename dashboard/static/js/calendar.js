@@ -4,8 +4,10 @@
 function buildCalendarPanel() {
   const panel = el("div", { class: "panel", id: "calendar-panel" });
 
+  const calStratName = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
   const header = el("div", { class: "panel-header" },
     el("span", { class: "panel-title" }, "Session Calendar"),
+    calStratName ? el("span", { class: "strat-name-tag" }, calStratName) : null,
     el("div", { class: "cal-month-nav" },
       el("button", { class: "cal-nav-btn", id: "cal-prev", title: "Previous month" }, "‹"),
       el("span", { class: "cal-month-label", id: "cal-month-label" }, fmtMonthLabel(state.selectedMonth)),

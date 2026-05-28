@@ -449,7 +449,7 @@
 [data-theme="light"] .signal-card {
   background:
     linear-gradient(160deg, rgba(99, 102, 241, 0.04) 0%, rgba(8, 145, 178, 0.015) 30%, transparent 55%),
-    rgba(255, 255, 255, 0.75);
+    rgba(255, 255, 255, 0.52);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-left: 3px solid var(--accent);
   box-shadow:

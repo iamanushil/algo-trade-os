@@ -3,7 +3,7 @@
 // ── Payoff diagram ────────────────────────────────────────────
 const _chartStore = {};
 
-function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit, qty, currentSpot) {
+function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit, qty, currentSpot, isLive = true) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || typeof Chart === "undefined") return;
   if (_chartStore[canvasId]) { _chartStore[canvasId].destroy(); delete _chartStore[canvasId]; }
@@ -41,6 +41,8 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
     afterDraw(chart) {
       const { ctx, chartArea: area, scales: { x: xScale, y: yScale } } = chart;
       if (!area) return;
+
+      const isLight = document.documentElement.dataset.theme === "light";
 
       // ── Helpers ──
       function vertLine(strike, color, label, dash = [4, 4]) {
@@ -138,7 +140,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         .map(lv => ({ xPx: lv.xPx, color: lv.color, text: lv.label }));
 
       if (spotXPx != null && spotXPx >= area.left && spotXPx <= area.right) {
-        _labelCandidates.push({ xPx: spotXPx, color: "#f5a623", text: "Live" });
+        _labelCandidates.push({ xPx: spotXPx, color: "#f5a623", text: isLive ? "Live" : "Spot" });
       }
 
       _labelCandidates.sort((a, b) => a.xPx - b.xPx);
@@ -174,7 +176,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         ctx.save();
         ctx.beginPath();
         ctx.setLineDash([4, 3]);
-        ctx.strokeStyle = "rgba(255,255,255,0.18)";
+        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.18)";
         ctx.lineWidth = 1;
         ctx.moveTo(_hoverX, area.top);
         ctx.lineTo(_hoverX, area.bottom);
@@ -187,7 +189,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         ctx.arc(_hoverX, dotY, 5, 0, Math.PI * 2);
         ctx.fillStyle = pnlColor;
         ctx.fill();
-        ctx.strokeStyle = "rgba(3,7,18,0.85)";
+        ctx.strokeStyle = isLight ? "rgba(255,255,255,0.90)" : "rgba(3,7,18,0.85)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
@@ -212,12 +214,12 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         if (boxY + boxH > area.bottom - 4) boxY = area.bottom - boxH - 4;
 
         // Shadow
-        ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowBlur  = 12;
+        ctx.shadowColor = isLight ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.5)";
+        ctx.shadowBlur  = isLight ? 8 : 12;
         ctx.shadowOffsetY = 4;
 
         // Box background
-        ctx.fillStyle = "rgba(3,7,18,0.95)";
+        ctx.fillStyle = isLight ? "rgba(255,255,255,0.97)" : "rgba(3,7,18,0.95)";
         ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, 7);
         else ctx.rect(boxX, boxY, boxW, boxH);
@@ -240,7 +242,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         ctx.fill();
 
         // NIFTY level label (muted)
-        ctx.fillStyle = "#9ab0cc";
+        ctx.fillStyle = isLight ? "#475569" : "#9ab0cc";
         ctx.font = "500 10px 'Inter', sans-serif";
         ctx.fillText(niftyLabel, boxX + 14, boxY + 17);
 
@@ -250,7 +252,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         ctx.fillText(pnlLabel, boxX + 14, boxY + 35);
 
         // Percent label (muted, small)
-        ctx.fillStyle = "rgba(78,99,128,0.9)";
+        ctx.fillStyle = isLight ? "rgba(100,116,139,0.9)" : "rgba(78,99,128,0.9)";
         ctx.font = "500 9px 'Inter', sans-serif";
         ctx.fillText(pctLabel, boxX + 14, boxY + 48);
 
@@ -267,7 +269,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         if (ctx.roundRect) ctx.roundRect(mx, my, markerW, markerH, 3);
         else ctx.fillRect(mx, my, markerW, markerH);
         ctx.fill();
-        ctx.fillStyle = "#030712";
+        ctx.fillStyle = isLight ? "#fff" : "#030712";
         ctx.font = "bold 9px 'Inter', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(Math.round(niftyVal).toLocaleString("en-IN"), _hoverX, my + 11);
@@ -316,7 +318,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       scales: {
         x: {
           type: "linear",
-          grid: { color: "rgba(255,255,255,0.06)", drawBorder: false },
+          grid: { color: "rgba(128,128,128,0.10)", drawBorder: false },
           ticks: {
             color: "#4e6380",
             maxTicksLimit: 7,
@@ -327,7 +329,7 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
           max: hi,
         },
         y: {
-          grid: { color: "rgba(255,255,255,0.06)", drawBorder: false },
+          grid: { color: "rgba(128,128,128,0.10)", drawBorder: false },
           ticks: {
             color: "#4e6380",
             font: { size: 10, family: "'Inter', sans-serif" },
@@ -404,4 +406,45 @@ function _addSessionSpotMarkers(canvasId, spotEntry, spotClose, shortStrike, lon
 
   if (spotEntry) drawMarker(spotEntry, "#f5a623", "Entry");
   if (spotClose) drawMarker(spotClose, "#9ab0cc", "Exit");
+}
+
+// ── Realized P&L horizontal reference line (session charts) ──
+function _addRealizedLine(canvasId, realizedPnl) {
+  const ch = _chartStore[canvasId];
+  if (!ch) return;
+  const { ctx, chartArea: area, scales: { y: yScale } } = ch;
+  if (!area) return;
+
+  const yPx = yScale.getPixelForValue(realizedPnl);
+  if (yPx < area.top || yPx > area.bottom) return;
+
+  const isProfit = realizedPnl >= 0;
+  const color    = isProfit ? "rgba(0,212,170,0.80)" : "rgba(255,95,109,0.80)";
+  const sign     = isProfit ? "+" : "−";
+  const label    = `Closed ${sign}₹${Math.abs(realizedPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.setLineDash([6, 3]);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.moveTo(area.left, yPx);
+  ctx.lineTo(area.right, yPx);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.font = "bold 10px 'Inter', sans-serif";
+  const tw = ctx.measureText(label).width;
+  const lx = area.right - tw - 8;
+
+  // Pill background
+  ctx.fillStyle = isProfit ? "rgba(0,212,170,0.14)" : "rgba(255,95,109,0.14)";
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(lx - 4, yPx - 11, tw + 8, 14, 3);
+  else ctx.fillRect(lx - 4, yPx - 11, tw + 8, 14);
+  ctx.fill();
+
+  ctx.fillStyle = color;
+  ctx.fillText(label, lx, yPx - 1);
+  ctx.restore();
 }

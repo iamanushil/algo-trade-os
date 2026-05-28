@@ -19,10 +19,13 @@ async function loadSignal(strategyId) {
 }
 
 function renderSignalSkeleton(section) {
+  const skelN = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
+  const skelT = skelN ? `<span class="strat-name-tag">${skelN}</span>` : "";
   section.innerHTML = `
     <div class="signal-card">
       <div class="signal-card-header">
         <span class="signal-card-title">Next Signal</span>
+        ${skelT}
         <div class="signal-refresh" style="margin-left:auto;">
           <span class="signal-updated text-muted">Loading…</span>
         </div>
@@ -173,10 +176,14 @@ function renderSignalData(section, d) {
     `;
   }
 
+  const sigStratName = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
+  const sigStratTag  = sigStratName ? `<span class="strat-name-tag">${sigStratName}</span>` : "";
+
   section.innerHTML = `
     <div class="signal-card" id="signal-card-inner" style="border-left-color:${borderColor};">
       <div class="signal-card-header">
         <span class="signal-card-title">NEXT SIGNAL</span>
+        ${sigStratTag}
         <div class="signal-refresh">
           <span class="signal-updated" id="signal-updated-ts">Updated ${updated}</span>
           <button class="signal-refresh-btn" id="signal-refresh-btn" title="Refresh signal">↻ Refresh</button>
@@ -251,10 +258,13 @@ function renderSignalData(section, d) {
 }
 
 function renderSignalError(section, msg) {
+  const errN = state.strategies.find(s => s.id === state.activeStrategyId)?.name;
+  const errT = errN ? `<span class="strat-name-tag">${errN}</span>` : "";
   section.innerHTML = `
     <div class="signal-card">
       <div class="signal-card-header">
         <span class="signal-card-title">Next Signal</span>
+        ${errT}
         <div class="signal-refresh">
           <button class="signal-refresh-btn" id="signal-refresh-btn">↻ Refresh</button>
         </div>
