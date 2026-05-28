@@ -113,9 +113,30 @@ function _updateActivePosLiveBar(spot) {
     distText = `${fmt2(spot - breakeven)} pts past breakeven`;
   }
 
+  // Mark-to-market (exit now) using Black-Scholes + India VIX
+  let mtmPnl = null;
+  if (state.liveVix != null && state.activePosMtmParams) {
+    const p = state.activePosMtmParams;
+    const m = computeMtmPnl(spot, p.shortStrike, p.longStrike, p.expiry,
+                             state.liveVix, p.shortEntry, p.longEntry, p.qty);
+    mtmPnl = m.pnl;
+    // Push to chart overlay so it redraws without a separate update call
+    const ch = _chartStore["active-payoff-chart"];
+    if (ch) ch._mtmPnl = mtmPnl;
+  }
+
   const spotStr = "₹" + spot.toLocaleString("en-IN", {
     minimumFractionDigits: 2, maximumFractionDigits: 2,
   });
+  const mtmSection = mtmPnl != null ? (() => {
+    const s = mtmPnl >= 0 ? "+" : "−";
+    const v = Math.abs(mtmPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+    const cls = mtmPnl >= 0 ? "green" : "red";
+    return `<span class="live-bar-sep"></span>
+    <span class="live-bar-pnl-label">Exit now (est.)</span>
+    <span class="live-bar-pnl-val ${cls}">${s}₹${v}</span>`;
+  })() : "";
+
   bar.innerHTML = `
     <span class="live-bar-label">NIFTY LIVE</span>
     <span class="live-bar-spot">${spotStr}</span>
@@ -125,6 +146,7 @@ function _updateActivePosLiveBar(spot) {
     <span class="live-bar-sep"></span>
     <span class="live-bar-pnl-label">If held to expiry</span>
     <span class="live-bar-pnl-val ${tIsProfit ? "green" : "red"}">${tPnlStr}</span>
+    ${mtmSection}
   `;
 }
 

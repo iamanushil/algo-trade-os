@@ -16,5 +16,7 @@ let state = {
   trades: [],            // [{expiry, strike, option_type, qty, entry_price, exit_price, leg_pnl, spread_role}]
   loadingTrades: false,
   signalData: null,
-  liveNifty: null,      // { spot, change, change_pct, prev_close, stale? }
+  liveNifty: null,          // { spot, change, change_pct, prev_close, stale? }
+  liveVix: null,            // India VIX value (for B-S pricing)
+  activePosMtmParams: null, // { shortStrike, longStrike, expiry, shortEntry, longEntry, qty }
 };

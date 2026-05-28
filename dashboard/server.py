@@ -359,6 +359,30 @@ def nifty_spot():
         return jsonify({"spot": None, "error": str(exc)})
 
 
+_vix_cache: dict = {"data": None, "fetched_at": 0.0}
+_VIX_CACHE_TTL = 60  # seconds
+
+
+@app.route("/api/vix")
+def india_vix():
+    """Return current India VIX (used as implied volatility for B-S pricing)."""
+    global _vix_cache
+    now = time.time()
+    if _vix_cache["data"] and (now - _vix_cache["fetched_at"]) < _VIX_CACHE_TTL:
+        return jsonify(_vix_cache["data"])
+    try:
+        import yfinance as yf
+        vix = float(yf.Ticker("^INDIAVIX").fast_info.last_price)
+        data = {"vix": round(vix, 2)}
+        _vix_cache = {"data": data, "fetched_at": now}
+        return jsonify(data)
+    except Exception as exc:
+        log.warning("VIX fetch failed: %s", exc)
+        if _vix_cache["data"]:
+            return jsonify({**_vix_cache["data"], "stale": True})
+        return jsonify({"vix": 15.0, "stale": True})
+
+
 @app.route("/api/nifty_at")
 def nifty_at():
     """Return NIFTY daily close for a given date (best proxy for exit spot when intraday data unavailable)."""

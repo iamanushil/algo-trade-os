@@ -89,13 +89,12 @@ function buildActivePositionPanel() {
   payoffWrap.appendChild(payoffCanvas);
   body.appendChild(payoffWrap);
   body.appendChild(el("div", { class: "chart-note-muted pos-payoff-note" },
-    "Orange dot = your position at current NIFTY · Hover chart to see P&L at any level · ",
-    el("em", {}, "Actual exit today will differ slightly — options still carry time value, so you'd pay a small premium over intrinsic value to close early")
+    "Orange dot = position at current NIFTY · Amber line = estimated exit P&L today (Black-Scholes, India VIX) · Green line = P&L if held to expiry · Hover to explore any level"
   ));
 
   panel.appendChild(body);
 
-  // Draw chart after DOM insertion
+  // Draw chart + set up MTM params after DOM insertion
   if (shorts.length && longs.length) {
     const sStrike = shorts[0].strike;
     const lStrike = longs[0].strike;
@@ -104,6 +103,22 @@ function buildActivePositionPanel() {
     const spot    = state.signalData?.spot ?? (sStrike - 200);
     if (nc > 0) {
       setTimeout(() => drawBearCallPayoff("active-payoff-chart", sStrike, lStrike, nc, qty, spot), 0);
+    }
+    // Store params for live MTM computation
+    state.activePosMtmParams = {
+      shortStrike: sStrike,
+      longStrike:  lStrike,
+      expiry:      state.openPositions[0]?.expiry_date ?? "",
+      shortEntry:  shorts[0].entry_price,
+      longEntry:   longs[0].entry_price,
+      qty,
+    };
+    // Fetch India VIX once (cache persists across renders)
+    if (state.liveVix == null) {
+      apiFetch("/api/vix").then(d => {
+        state.liveVix = d.vix ?? 15;
+        if (state.liveNifty?.spot) _updateActivePosLiveBar(state.liveNifty.spot);
+      }).catch(() => { state.liveVix = 15; });
     }
   }
 

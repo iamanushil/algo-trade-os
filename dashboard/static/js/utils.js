@@ -68,6 +68,40 @@ function html(str) {
   return d;
 }
 
+// ── Black-Scholes call price (European) ─────────────────────
+function _normCdf(x) {
+  // Abramowitz & Stegun 26.2.17 — max error 7.5e-8
+  const a = [0.319381530, -0.356563782, 1.781477937, -1.821255978, 1.330274429];
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const pdf = Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+  let poly = 0, tp = t;
+  for (let i = 0; i < 5; i++) { poly += a[i] * tp; tp *= t; }
+  const cdf = 1 - pdf * poly;
+  return x >= 0 ? cdf : 1 - cdf;
+}
+
+function _bsCall(S, K, T, r, sigma) {
+  if (T <= 0) return Math.max(S - K, 0);
+  const sqrtT = Math.sqrt(T);
+  const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
+  const d2 = d1 - sigma * sqrtT;
+  return S * _normCdf(d1) - K * Math.exp(-r * T) * _normCdf(d2);
+}
+
+// Returns { pnl, shortCurrent, longCurrent } — MTM P&L if closing the spread today
+function computeMtmPnl(spot, shortStrike, longStrike, expiryDateStr, vix, shortEntry, longEntry, qty) {
+  const r     = 0.065; // India risk-free rate ~6.5%
+  const sigma = Math.max((vix || 15), 5) / 100;
+  // NSE expiry: market close 15:30 IST
+  const expiry = new Date(expiryDateStr + "T15:30:00+05:30");
+  const T = Math.max((expiry - new Date()) / (365.25 * 24 * 3600 * 1000), 0);
+  const shortCurrent = _bsCall(spot, shortStrike, T, r, sigma);
+  const longCurrent  = _bsCall(spot, longStrike,  T, r, sigma);
+  // Bear call: you sold short leg, bought long leg
+  const pnl = ((shortEntry - shortCurrent) + (longCurrent - longEntry)) * qty;
+  return { pnl: Math.round(pnl), shortCurrent: +shortCurrent.toFixed(2), longCurrent: +longCurrent.toFixed(2) };
+}
+
 // ── Strategy label helpers ───────────────────────────────────
 // Returns "Bear Call Spread · Curvature" from {spread_type, name}
 function _buildStratTagText(strat) {

@@ -127,6 +127,49 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         }
       }
 
+      // ── Mark-to-Market line (exit now B-S estimate) ──
+      if (chart._mtmPnl != null) {
+        const mPnl = chart._mtmPnl;
+        const yPx = yScale.getPixelForValue(mPnl);
+        if (yPx >= area.top && yPx <= area.bottom) {
+          const isProfit  = mPnl >= 0;
+          const mColor    = isProfit ? "#fbbf24" : "#fb923c";
+          const mColorDim = isProfit ? "rgba(251,191,36,0.18)" : "rgba(251,146,60,0.18)";
+          const sign   = isProfit ? "+" : "−";
+          const mLabel = `Exit now ~${sign}₹${Math.abs(mPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = isProfit ? "rgba(251,191,36,0.60)" : "rgba(251,146,60,0.60)";
+          ctx.lineWidth = 2;
+          ctx.moveTo(area.left, yPx);
+          ctx.lineTo(area.right, yPx);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = "bold 10px 'Inter', sans-serif";
+          const rtw = ctx.measureText(mLabel).width;
+          const rlx = area.right - rtw - 12;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 12, rtw + 8, 15, 3);
+          else ctx.rect(rlx - 4, yPx - 12, rtw + 8, 15);
+          ctx.fillStyle = mColorDim;
+          ctx.fill();
+          ctx.fillStyle = mColor;
+          ctx.fillText(mLabel, rlx, yPx - 1);
+          // Left pill: "Today"
+          ctx.font = "700 9px 'Inter', sans-serif";
+          const lw = ctx.measureText("Today").width;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 12, lw + 8, 15, 3);
+          else ctx.rect(area.left, yPx - 12, lw + 8, 15);
+          ctx.fillStyle = mColorDim;
+          ctx.fill();
+          ctx.fillStyle = mColor;
+          ctx.fillText("Today", area.left + 4, yPx - 1);
+          ctx.restore();
+        }
+      }
+
       // ── Key levels — draw lines first, labels after with collision detection ──
       const _levels = [
         { strike: shortStrike, color: "rgba(255,95,109,0.85)", label: `↓ ${shortStrike.toLocaleString("en-IN")}`, dash: [4, 4] },
