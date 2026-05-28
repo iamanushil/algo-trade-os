@@ -140,13 +140,43 @@ function renderSignalData(section, d) {
     `;
   }
 
-  const actionColors = { ENTER: "#22c55e", MONITOR: "#f59e0b", WAIT: "#ef4444" };
-  const borderColor = actionColors[action] || "#3b82f6";
+  const actionColors = { ENTER: "#00d4aa", MONITOR: "#f5a623", WAIT: "#ff5f6d" };
+  const borderColor = actionColors[action] || "#5b8ef0";
+
+  // P&L metrics as a compact 4-column row (same pattern as pos-metrics-grid)
+  let pnlMetricsHTML = "";
+  if (hasSpread) {
+    const netCreditTotal = ss.net_credit_total ?? (ss.net_credit != null && ss.lot_size ? ss.net_credit * ss.lot_size : null);
+    const unavailNote = ss.net_credit == null
+      ? `<div class="signal-unavail-note">Premiums unavailable (market closed) — values are theoretical estimates</div>`
+      : "";
+    const mp  = ss.max_profit  != null ? `<div class="sig-metric-value profit">+${fmtR(ss.max_profit)}</div>`        : `<div class="sig-metric-value">—</div>`;
+    const ml  = ss.max_loss    != null ? `<div class="sig-metric-value loss">−${fmtR(ss.max_loss)}</div>`            : `<div class="sig-metric-value">—</div>`;
+    const nc  = netCreditTotal != null ? `<div class="sig-metric-value">+${fmtR(netCreditTotal)}</div>`              : `<div class="sig-metric-value">—</div>`;
+    const bk  = ss.breakeven   != null ? `<div class="sig-metric-value">${ss.breakeven.toLocaleString("en-IN")}</div>` : `<div class="sig-metric-value">—</div>`;
+    pnlMetricsHTML = `
+      <div class="signal-pnl-metrics">
+        <div class="sig-metric-card">
+          <div class="sig-metric-label">Max Profit</div>${mp}
+        </div>
+        <div class="sig-metric-card">
+          <div class="sig-metric-label">Max Loss</div>${ml}
+        </div>
+        <div class="sig-metric-card">
+          <div class="sig-metric-label">Net Credit</div>${nc}
+        </div>
+        <div class="sig-metric-card">
+          <div class="sig-metric-label">Breakeven</div>${bk}
+        </div>
+      </div>
+      ${unavailNote}
+    `;
+  }
 
   section.innerHTML = `
     <div class="signal-card" id="signal-card-inner" style="border-left-color:${borderColor};">
       <div class="signal-card-header">
-        <span class="signal-card-title" style="text-transform:uppercase;letter-spacing:0.5px;">Next Signal</span>
+        <span class="signal-card-title">NEXT SIGNAL</span>
         <div class="signal-refresh">
           <span class="signal-updated" id="signal-updated-ts">Updated ${updated}</span>
           <button class="signal-refresh-btn" id="signal-refresh-btn" title="Refresh signal">↻ Refresh</button>
@@ -160,18 +190,12 @@ function renderSignalData(section, d) {
         </div>
         ${tradeTicketHTML}
         ${hasSpread ? `
-        <div class="signal-bottom-split">
-          <div class="signal-bottom-left">
-            <div class="signal-section-label">Expected P&amp;L</div>
-            ${pnlBlockHTML}
+          <div class="signal-section-label">Expected P&amp;L</div>
+          ${pnlMetricsHTML}
+          <div class="signal-section-label">Payoff at Expiry</div>
+          <div class="payoff-canvas-wrap signal-payoff-wrap">
+            <canvas id="signal-payoff-chart"></canvas>
           </div>
-          <div class="signal-bottom-right">
-            <div class="signal-section-label">Payoff at Expiry</div>
-            <div class="payoff-canvas-wrap" style="margin-top:0;">
-              <canvas id="signal-payoff-chart"></canvas>
-            </div>
-          </div>
-        </div>
         ` : ""}
         <div class="signal-market-bar">
           <div class="signal-market-item">

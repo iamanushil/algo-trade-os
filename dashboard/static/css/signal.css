@@ -15,7 +15,7 @@
 }
 
 .signal-card-header {
-  padding: 14px 18px;
+  padding: 10px 18px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -29,10 +29,10 @@
 }
 
 .signal-card-body {
-  padding: 18px;
+  padding: 14px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .signal-top-row {
@@ -252,7 +252,7 @@
   background: var(--surface2);
   border: 1px solid var(--border2);
   border-radius: 10px;
-  padding: 16px 20px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -274,13 +274,13 @@
 .trade-ticket-action.sell { color: var(--red); }
 .trade-ticket-action.buy  { color: var(--green); }
 .trade-ticket-strike {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-family: monospace;
   color: var(--text);
   letter-spacing: -0.5px;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 .trade-ticket-role {
   font-size: 10px;
@@ -298,9 +298,9 @@
 .trade-ticket-price strong { color: var(--text2); font-weight: 600; }
 .trade-ticket-sep {
   width: 1px;
-  height: 52px;
+  height: 44px;
   background: var(--border2);
-  margin: 0 24px;
+  margin: 0 20px;
   flex-shrink: 0;
 }
 .trade-ticket-qty {
@@ -318,52 +318,74 @@
   background: var(--surface2);
   border: 1px solid var(--border2);
   border-radius: 10px;
-  padding: 16px 18px;
+  padding: 10px 14px;
 }
 .signal-pnl-block-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
+  gap: 10px 16px;
 }
 .signal-pnl-block-label {
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+.signal-pnl-block-value {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+  color: var(--text2);
+}
+.signal-pnl-block-value.profit { color: var(--green); }
+.signal-pnl-block-value.loss   { color: var(--red); }
+
+/* ── Signal P&L compact metrics row (4 cols, like pos-metrics-grid) ── */
+.signal-pnl-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 4px;
+}
+@media (max-width: 900px) { .signal-pnl-metrics { grid-template-columns: repeat(2, 1fr); } }
+
+.sig-metric-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.sig-metric-label {
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--muted);
   margin-bottom: 4px;
 }
-.signal-pnl-block-value {
-  font-size: 17px;
+.sig-metric-value {
+  font-size: 15px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: monospace;
+  color: var(--text2);
 }
-.signal-pnl-block-value.profit { color: var(--green); }
-.signal-pnl-block-value.loss   { color: var(--red); }
+.sig-metric-value.profit { color: var(--green); }
+.sig-metric-value.loss   { color: var(--red); }
 
-/* ── Signal bottom split (P&L + payoff chart) ── */
-.signal-bottom-split {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+/* ── Signal payoff chart: full-width, taller ── */
+.signal-payoff-wrap {
+  margin-top: 0 !important;
 }
-.signal-bottom-left {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.signal-bottom-right {
-  width: 340px;
-  flex-shrink: 0;
-  min-width: 0;
-}
-@media (max-width: 1000px) {
-  .signal-bottom-split { flex-direction: column; }
-  .signal-bottom-right { width: 100%; }
-}
+.signal-payoff-wrap canvas { height: 220px !important; }
+
+/* ── Keep signal-bottom-split for legacy fallback (unused now) ── */
+.signal-bottom-split { display: flex; gap: 16px; align-items: flex-start; }
+.signal-bottom-left  { flex: 1; min-width: 0; }
+.signal-bottom-right { width: 320px; flex-shrink: 0; }
 
 /* ── Market bar ── */
 .signal-market-bar {

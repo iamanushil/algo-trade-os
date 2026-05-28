@@ -3,39 +3,74 @@
   border-top: 2px solid var(--gold);
 }
 
+/* Header extras */
+.pos-expiry-tag {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.pos-dte-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 2px 10px;
+  margin-left: auto;
+}
+.pos-dte-tag.warn   { color: var(--gold); border-color: var(--gold-border); background: var(--gold-bg); }
+.pos-dte-tag.urgent { color: var(--red);  border-color: var(--red-border);  background: var(--red-bg); }
+
+/* Legs */
 .legs-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .leg-row {
   background: var(--surface2);
   border: 1px solid var(--border2);
-  border-radius: 9px;
-  padding: 12px 16px;
+  border-radius: 8px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   transition: border-color 0.15s;
 }
 .leg-row:hover { border-color: var(--muted); }
 
+/* SELL/BUY action tag inline in leg row */
+.leg-action-tag {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.leg-action-tag.sell { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.leg-action-tag.buy  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
 .leg-strike {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
-  min-width: 90px;
+  min-width: 80px;
   font-variant-numeric: tabular-nums;
 }
 
 .leg-type {
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
   letter-spacing: 0.5px;
 }
 .leg-type.CE { background: rgba(91,142,240,0.12); color: #7aabff; border: 1px solid rgba(91,142,240,0.3); }
@@ -44,8 +79,8 @@
 .role-badge {
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -68,60 +103,71 @@
 }
 .leg-detail strong { color: var(--text2); font-weight: 600; }
 
-/* Position metrics */
+/* ── Position metrics (compact row) ── */
 .pos-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
 }
+@media (max-width: 1200px) { .pos-metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .pos-metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .pos-metric-card {
   background: var(--surface2);
   border: 1px solid var(--border2);
-  border-radius: 9px;
-  padding: 12px 16px;
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
 .pos-metric-label {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-weight: 600;
 }
 
 .pos-metric-value {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pos-metric-value.green { color: var(--green); }
-.pos-metric-value.red { color: var(--red); }
-.pos-metric-value.gold { color: var(--gold); }
+.pos-metric-value.red   { color: var(--red); }
+.pos-metric-value.gold  { color: var(--gold); }
 
-/* ── Payoff diagram ── */
-.panel-split { display: flex; gap: 16px; align-items: flex-start; }
-.panel-split-left { flex: 1; min-width: 0; }
-.panel-split-right { width: 360px; flex-shrink: 0; min-width: 0; }
-@media (max-width: 1100px) { .panel-split { flex-direction: column; } .panel-split-right { width: 100%; } }
-
+/* ── Payoff chart (full-width, taller) ── */
+.pos-payoff-wrap {
+  margin-top: 0 !important;
+}
 .payoff-canvas-wrap {
-  margin-top: 16px;
+  margin-top: 12px;
   background: var(--surface2);
   border: 1px solid var(--border2);
   border-radius: 10px;
-  padding: 12px 16px 8px;
+  padding: 10px 14px 8px;
   position: relative;
 }
 .payoff-canvas-wrap canvas { display: block; width: 100% !important; height: 200px !important; }
+.pos-payoff-wrap canvas   { height: 220px !important; }
 
-/* ── Leg P&L bar chart ── */
-.leg-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+/* Retained for session detail (panel-split still used there) */
+.panel-split { display: flex; gap: 16px; align-items: flex-start; }
+.panel-split-left  { flex: 1; min-width: 0; }
+.panel-split-right { width: 360px; flex-shrink: 0; min-width: 0; }
+@media (max-width: 1100px) { .panel-split { flex-direction: column; } .panel-split-right { width: 100%; } }
+
+/* ── Leg P&L bar chart (session detail) ── */
+.leg-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .leg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
 .leg-bar-label { width: 120px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-.leg-bar-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; position: relative; }
+.leg-bar-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
 .leg-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
 .leg-bar-fill.profit { background: var(--green); }
 .leg-bar-fill.loss   { background: var(--red); }
@@ -130,56 +176,24 @@
 .leg-bar-value.red   { color: var(--red); }
 
 /* ── Trade Detail Panel ── */
-#trade-detail-panel .panel-header {
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+#trade-detail-panel .panel-header { justify-content: space-between; flex-wrap: wrap; gap: 8px; }
 
-.detail-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.detail-expiry {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.detail-session-pnl {
-  font-size: 15px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+.detail-header-right { display: flex; align-items: center; gap: 12px; }
+.detail-expiry { font-size: 12px; color: var(--muted); font-weight: 500; }
+.detail-session-pnl { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .detail-session-pnl.green { color: var(--green); }
-.detail-session-pnl.red { color: var(--red); }
+.detail-session-pnl.red   { color: var(--red); }
 
-/* ── Table ── */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
+/* ── Data table ── */
+.data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--muted);
-  padding: 8px 14px;
-  text-align: right;
-  border-bottom: 1px solid var(--border);
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--muted); padding: 8px 12px; text-align: right; border-bottom: 1px solid var(--border);
 }
 .data-table th:first-child { text-align: left; }
-
 .data-table td {
-  padding: 11px 14px;
-  text-align: right;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
+  padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-variant-numeric: tabular-nums;
 }
 .data-table td:first-child { text-align: left; }
 .data-table tr:last-child td { border-bottom: none; }
@@ -187,15 +201,9 @@
 
 .td-strike { font-weight: 700; }
 .td-expiry { color: var(--muted); font-size: 12px; font-weight: 500; }
-.td-time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.td-time   { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .td-time-h { font-size: 10px; }
-.td-green { color: var(--green); font-weight: 600; }
-.td-red { color: var(--red); font-weight: 600; }
+.td-green  { color: var(--green); font-weight: 600; }
+.td-red    { color: var(--red);   font-weight: 600; }
 
-.no-detail-msg {
-  text-align: center;
-  color: var(--muted);
-  padding: 32px;
-  font-size: 13px;
-  font-weight: 500;
-}
+.no-detail-msg { text-align: center; color: var(--muted); padding: 28px; font-size: 13px; font-weight: 500; }
