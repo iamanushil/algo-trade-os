@@ -1,20 +1,21 @@
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
+::-webkit-scrollbar-thumb { background: rgba(129, 140, 248, 0.25); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.45); }
 
 /* ── Badge: live ── */
 .badge-live {
-  background: rgba(0, 212, 170, 0.10);
-  border: 1px solid var(--green-border);
-  color: var(--green);
+  background: rgba(34, 211, 238, 0.10);
+  border: 1px solid var(--cyan-border);
+  color: var(--cyan);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 10px;
   border-radius: 20px;
   letter-spacing: 1px;
   text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(34, 211, 238, 0.18);
 }
 
 /* ── Badge: active ── */
@@ -60,21 +61,27 @@
   font-size: 14px;
 }
 
-/* ── Panel base — glass ── */
+/* ── Panel base — glass with indigo tint ── */
 .panel {
-  background: var(--surface);
+  background:
+    linear-gradient(160deg, rgba(129, 140, 248, 0.055) 0%, rgba(34, 211, 238, 0.018) 30%, transparent 55%),
+    var(--surface);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: var(--glass-shadow);
+  /* Inset indigo top-edge highlight — refracted light effect */
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.55),
+    0 2px 12px rgba(99, 102, 241, 0.08),
+    inset 0 1px 0 rgba(129, 140, 248, 0.28);
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .panel-header {
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(129, 140, 248, 0.10);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -93,9 +100,9 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.09) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgba(129, 140, 248, 0.05) 25%,
+    rgba(129, 140, 248, 0.12) 50%,
+    rgba(129, 140, 248, 0.05) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
@@ -172,11 +179,13 @@
   flex-shrink: 0;
 }
 .strategy-card {
-  background: var(--surface);
+  background:
+    linear-gradient(160deg, rgba(129, 140, 248, 0.06) 0%, transparent 50%),
+    var(--surface);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--border2);
+  border-left: 3px solid rgba(129, 140, 248, 0.35);
   border-radius: 14px;
   padding: 16px;
   cursor: pointer;
@@ -185,7 +194,10 @@
 }
 .strategy-card:hover {
   border-color: var(--border2);
-  box-shadow: 0 0 0 1px var(--accent-dim), var(--glass-shadow-sm);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.45),
+    0 0 0 1px var(--accent-dim),
+    inset 0 1px 0 rgba(129, 140, 248, 0.30);
 }
 .strategy-card.active { border-left-color: var(--accent); }
 .strategy-card-header {
@@ -219,7 +231,7 @@
   gap: 8px;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(129, 140, 248, 0.10);
 }
 .strategy-card-stat-label {
   font-size: 10px;

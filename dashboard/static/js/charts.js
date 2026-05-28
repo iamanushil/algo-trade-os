@@ -153,13 +153,13 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
     }
 
     // Zero baseline
-    drawHorizLine(0, "rgba(91,142,240,0.35)", [2, 4]);
+    drawHorizLine(0, "rgba(129,140,248,0.30)", [2, 4]);
 
     // Key vertical levels
     drawVertLine(shortStrike, "rgba(255,95,109,0.8)", `↓${shortStrike.toLocaleString("en-IN")}`);
     drawVertLine(longStrike,  "rgba(0,212,170,0.8)",  `↑${longStrike.toLocaleString("en-IN")}`);
     if (breakeven > shortStrike && breakeven < longStrike) {
-      drawVertLine(breakeven, "rgba(91,142,240,0.7)", `BE ${breakeven.toLocaleString("en-IN")}`, [6, 3]);
+      drawVertLine(breakeven, "rgba(129,140,248,0.80)", `BE ${breakeven.toLocaleString("en-IN")}`, [6, 3]);
     }
 
     // Current spot

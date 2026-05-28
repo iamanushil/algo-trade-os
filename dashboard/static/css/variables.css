@@ -16,30 +16,42 @@
   --text2: #9ab0cc;
   --muted: #4e6380;
 
-  /* ── Accent ── */
-  --accent: #5b8ef0;
-  --accent-dim: rgba(91, 142, 240, 0.12);
-  --accent-glow: rgba(91, 142, 240, 0.28);
+  /* ── Primary accent: indigo-violet ── */
+  --accent: #818cf8;
+  --accent-dim: rgba(129, 140, 248, 0.13);
+  --accent-glow: rgba(129, 140, 248, 0.32);
 
-  /* ── Semantic: green ── */
+  /* ── Complementary: electric cyan ── */
+  --cyan: #22d3ee;
+  --cyan-bg: rgba(34, 211, 238, 0.08);
+  --cyan-border: rgba(34, 211, 238, 0.22);
+  --cyan-glow: rgba(34, 211, 238, 0.28);
+
+  /* ── Complementary: violet ── */
+  --violet: #a78bfa;
+  --violet-bg: rgba(167, 139, 250, 0.08);
+  --violet-border: rgba(167, 139, 250, 0.22);
+
+  /* ── Semantic: green (profit) ── */
   --green: #00d4aa;
   --green-bg: rgba(0, 212, 170, 0.08);
   --green-border: rgba(0, 212, 170, 0.22);
 
-  /* ── Semantic: red ── */
+  /* ── Semantic: red (loss) ── */
   --red: #ff5f6d;
   --red-bg: rgba(255, 95, 109, 0.08);
   --red-border: rgba(255, 95, 109, 0.22);
 
-  /* ── Semantic: gold ── */
+  /* ── Semantic: gold (signal/warning) ── */
   --gold: #f5a623;
   --gold-bg: rgba(245, 166, 35, 0.08);
   --gold-border: rgba(245, 166, 35, 0.22);
 
   /* ── Glass tokens ── */
   --glass-blur: blur(20px);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-  --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Inset top highlight uses indigo — like light refracting through glass */
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(129, 140, 248, 0.22);
+  --glass-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.40), inset 0 1px 0 rgba(129, 140, 248, 0.16);
 
   --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
