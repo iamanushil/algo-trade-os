@@ -74,6 +74,15 @@ function buildActivePositionPanel() {
   }
   body.appendChild(metricsGrid);
 
+  // ── Live NIFTY bar ──
+  const liveBar = el("div", { id: "active-pos-live-bar", class: "active-pos-live-bar" },
+    el("span", { class: "live-bar-label" }, "NIFTY LIVE"),
+    el("span", { class: "live-bar-spot" }, "fetching…")
+  );
+  body.appendChild(liveBar);
+  // Populate immediately if we already have live data
+  if (state.liveNifty?.spot) _updateActivePosLiveBar(state.liveNifty.spot);
+
   // ── Payoff chart (full width, taller) ──
   const payoffWrap = el("div", { class: "payoff-canvas-wrap pos-payoff-wrap" });
   const payoffCanvas = el("canvas", { id: "active-payoff-chart" });

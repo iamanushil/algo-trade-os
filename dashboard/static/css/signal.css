@@ -444,3 +444,39 @@
   padding: 4px 0 0;
   font-weight: 500;
 }
+
+/* ── Light theme overrides for signal.css ── */
+[data-theme="light"] .signal-card {
+  background:
+    linear-gradient(160deg, rgba(99, 102, 241, 0.04) 0%, rgba(8, 145, 178, 0.015) 30%, transparent 55%),
+    rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid var(--accent);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.10),
+    0 1px 6px rgba(99, 102, 241, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.90);
+}
+
+[data-theme="light"] .signal-card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+/* Strike colors readable on light background */
+[data-theme="light"] .strike-short { color: #c0152a; }
+[data-theme="light"] .strike-long  { color: #047857; }
+
+[data-theme="light"] .signal-refresh-btn {
+  background: rgba(255, 255, 255, 0.60);
+}
+
+[data-theme="light"] .leg-type.CE {
+  background: rgba(91, 142, 240, 0.10);
+  color: #2563eb;
+  border: 1px solid rgba(91, 142, 240, 0.25);
+}
+[data-theme="light"] .leg-type.PE {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+}

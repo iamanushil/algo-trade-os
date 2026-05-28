@@ -1,39 +1,145 @@
 "use strict";
 
-// ── Strategy dropdown ─────────────────────────────────────────
-function renderStrategyDropdown() {
-  const select = document.getElementById("strategy-select");
-  if (!select) return;
+// ── Strategy custom dropdown ──────────────────────────────────
+(function () {
+  let _open = false;
+  let _focusIdx = -1;
 
-  // Rebuild options only when the strategy list changes
-  select.innerHTML = "";
+  function _options() {
+    return Array.from(document.querySelectorAll(".strat-option"));
+  }
+
+  function _close() {
+    const btn = document.getElementById("strat-btn");
+    const panel = document.getElementById("strat-panel");
+    if (!btn || !panel) return;
+    _open = false;
+    _focusIdx = -1;
+    panel.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    _options().forEach(o => o.classList.remove("focused"));
+  }
+
+  function _open_panel() {
+    const btn = document.getElementById("strat-btn");
+    const panel = document.getElementById("strat-panel");
+    if (!btn || !panel) return;
+    _open = true;
+    panel.classList.add("open");
+    btn.setAttribute("aria-expanded", "true");
+    // Focus the active option
+    const opts = _options();
+    _focusIdx = opts.findIndex(o => o.dataset.id === state.activeStrategyId);
+    if (_focusIdx < 0) _focusIdx = 0;
+    opts.forEach((o, i) => o.classList.toggle("focused", i === _focusIdx));
+  }
+
+  function _moveFocus(delta) {
+    const opts = _options().filter(o => !o.classList.contains("disabled"));
+    if (!opts.length) return;
+    const allOpts = _options();
+    // find current focused in full list
+    const cur = allOpts.findIndex(o => o.classList.contains("focused"));
+    // map to enabled list
+    const enabledIdx = opts.findIndex(o => o === allOpts[cur]);
+    const next = Math.max(0, Math.min(opts.length - 1, enabledIdx + delta));
+    _focusIdx = allOpts.indexOf(opts[next]);
+    allOpts.forEach((o, i) => o.classList.toggle("focused", i === _focusIdx));
+    opts[next].scrollIntoView({ block: "nearest" });
+  }
+
+  function _selectFocused() {
+    const opts = _options();
+    const focused = opts[_focusIdx];
+    if (focused && !focused.classList.contains("disabled")) {
+      const id = focused.dataset.id;
+      _close();
+      if (id && id !== state.activeStrategyId) selectStrategy(id);
+    }
+  }
+
+  function _initListeners() {
+    const btn = document.getElementById("strat-btn");
+    if (!btn || btn._stratInit) return;
+    btn._stratInit = true;
+
+    btn.addEventListener("click", () => { _open ? _close() : _open_panel(); });
+
+    btn.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); _open ? _selectFocused() : _open_panel(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); _open ? _moveFocus(1) : _open_panel(); }
+      else if (e.key === "ArrowUp")   { e.preventDefault(); _open ? _moveFocus(-1) : _open_panel(); }
+      else if (e.key === "Escape")    { _close(); btn.focus(); }
+    });
+
+    document.addEventListener("click", e => {
+      if (_open && !document.getElementById("strategy-picker").contains(e.target)) _close();
+    }, { capture: true });
+  }
+
+  window._stratDropdown = { close: _close, initListeners: _initListeners };
+})();
+
+function renderStrategyDropdown() {
+  const btn = document.getElementById("strat-btn");
+  const panel = document.getElementById("strat-panel");
+  const label = document.getElementById("strat-label");
+  if (!btn || !panel || !label) return;
+
+  window._stratDropdown.initListeners();
+
+  panel.innerHTML = "";
 
   if (!state.strategies.length) {
-    const opt = document.createElement("option");
-    opt.textContent = "No strategies found";
-    opt.disabled = true;
-    select.appendChild(opt);
+    const empty = document.createElement("div");
+    empty.className = "strat-empty";
+    empty.textContent = "No strategies found";
+    panel.appendChild(empty);
+    label.textContent = "No strategies";
     return;
   }
 
   for (const s of state.strategies) {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = s.status === "coming_soon" ? s.name + " (soon)" : s.name;
-    opt.disabled = s.status === "coming_soon";
-    if (s.id === state.activeStrategyId) opt.selected = true;
-    select.appendChild(opt);
+    const isActive = s.id === state.activeStrategyId;
+    const isDisabled = s.status === "coming_soon";
+    const displayName = isDisabled ? s.name + " (soon)" : s.name;
+
+    const row = document.createElement("div");
+    row.className = "strat-option" + (isActive ? " active" : "") + (isDisabled ? " disabled" : "");
+    row.dataset.id = s.id;
+    row.setAttribute("role", "option");
+    row.setAttribute("aria-selected", isActive ? "true" : "false");
+    row.tabIndex = -1;
+
+    const nameEl = document.createElement("span");
+    nameEl.className = "strat-option-name";
+    nameEl.textContent = displayName;
+
+    const badge = document.createElement("span");
+    const typeKey = (s.type || "").toLowerCase();
+    const badgeClass = typeKey.includes("fo") || typeKey.includes("f&o") || typeKey.includes("option") || typeKey.includes("future")
+      ? "fo" : typeKey.includes("eq") || typeKey.includes("equity") ? "eq" : "";
+    badge.className = "strat-type-badge" + (badgeClass ? " " + badgeClass : "");
+    badge.textContent = badgeClass === "fo" ? "FO" : badgeClass === "eq" ? "EQ" : (s.type || "—").toUpperCase().slice(0, 4);
+
+    row.appendChild(nameEl);
+    row.appendChild(badge);
+    panel.appendChild(row);
+
+    if (!isDisabled) {
+      row.addEventListener("click", () => {
+        window._stratDropdown.close();
+        if (s.id !== state.activeStrategyId) selectStrategy(s.id);
+      });
+    }
+
+    if (isActive) label.textContent = s.name;
   }
 
-  // Remove any pre-existing listener by replacing the element clone trick
-  const fresh = select.cloneNode(true);
-  select.parentNode.replaceChild(fresh, select);
-  fresh.addEventListener("change", () => {
-    const id = fresh.value;
-    if (id && id !== state.activeStrategyId) {
-      selectStrategy(id);
-    }
-  });
+  // If no active strategy label was set yet
+  if (!state.activeStrategyId && state.strategies.length) {
+    label.textContent = state.strategies[0].name;
+  }
 }
 
 // ── Select strategy ───────────────────────────────────────────

@@ -144,6 +144,59 @@
 .pos-metric-value.red   { color: var(--red); }
 .pos-metric-value.gold  { color: var(--gold); }
 
+/* ── Active Position — Live NIFTY bar ── */
+.active-pos-live-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.live-bar-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.live-bar-spot {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+  color: var(--text);
+}
+.live-bar-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border2);
+  flex-shrink: 0;
+}
+.live-bar-dist {
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 500;
+  flex: 1;
+}
+.live-bar-status {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.live-bar-status.safe    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.live-bar-status.watch   { background: var(--gold-bg);  color: var(--gold);  border: 1px solid var(--gold-border); }
+.live-bar-status.caution { background: rgba(245,166,35,0.10); color: #ff9f4a; border: 1px solid rgba(245,135,0,0.30); }
+.live-bar-status.danger  { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); box-shadow: 0 0 10px rgba(255,95,109,0.22); }
+
 /* ── Payoff chart (full-width, taller) ── */
 .pos-payoff-wrap {
   margin-top: 0 !important;
@@ -211,3 +264,55 @@
 .td-red    { color: var(--red);   font-weight: 600; }
 
 .no-detail-msg { text-align: center; color: var(--muted); padding: 28px; font-size: 13px; font-weight: 500; }
+
+/* ── Light theme overrides for position.css ── */
+[data-theme="light"] .leg-row:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+  background: var(--surface3);
+}
+
+[data-theme="light"] .pos-metric-card:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] .leg-type.CE {
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+[data-theme="light"] .leg-type.PE {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.22);
+}
+
+[data-theme="light"] .role-badge.SHORT_LEG,
+[data-theme="light"] .role-badge.SHORT_LEG_ADJ {
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.22);
+  color: #dc2626;
+}
+[data-theme="light"] .role-badge.LONG_LEG,
+[data-theme="light"] .role-badge.LONG_LEG_ADJ {
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.22);
+  color: #047857;
+}
+
+[data-theme="light"] .leg-bar-track {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+[data-theme="light"] .payoff-canvas-wrap {
+  background: rgba(255, 255, 255, 0.70);
+}
+
+[data-theme="light"] .data-table th {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .data-table td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-theme="light"] .data-table tr:hover td {
+  background: rgba(99, 102, 241, 0.04);
+}

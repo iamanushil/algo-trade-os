@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="css/calendar.css">
   <link rel="stylesheet" href="css/signal.css">
   <link rel="stylesheet" href="css/position.css">
+  <!-- Load theme.js inline-early to apply stored theme before first paint (no FOUC) -->
+  <script src="js/theme.js"></script>
 </head>
 <body>
 <div id="app">
@@ -19,11 +21,23 @@
   <header id="header">
     <div id="header-logo">algo<span>OS</span></div>
     <div id="header-sep" style="width:1px;height:18px;background:var(--border2);margin:0 4px;"></div>
-    <div id="strategy-picker">
-      <select id="strategy-select"></select>
+    <div id="strategy-picker" class="strat-dropdown">
+      <button id="strat-btn" class="strat-btn" aria-haspopup="listbox" aria-expanded="false">
+        <span id="strat-label">Loading…</span>
+        <svg class="strat-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 4.5L6 8.5L10 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div id="strat-panel" class="strat-panel" role="listbox" aria-label="Strategy"></div>
     </div>
     <span class="badge-live">● LIVE</span>
+    <div id="header-nifty" class="header-nifty">
+      <span class="header-nifty-label">NIFTY 50</span>
+      <span id="header-nifty-price" class="header-nifty-price">—</span>
+      <span id="header-nifty-change" class="header-nifty-change">—</span>
+    </div>
     <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+      <button id="theme-toggle" aria-label="Switch to light theme" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--muted);cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--muted)'"></button>
       <div id="header-pct" class="text-muted" style="font-size:13px;font-weight:500;"></div>
       <div id="header-pnl" style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;">—</div>
     </div>

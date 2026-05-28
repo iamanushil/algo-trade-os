@@ -225,4 +225,17 @@ function selectMonth(key) {
   });
 
   renderMain();
+
+  setTimeout(() => {
+    const cal = document.getElementById("calendar-panel");
+    if (cal) {
+      const main = document.getElementById("main");
+      const calRect = cal.getBoundingClientRect();
+      const mainRect = main.getBoundingClientRect();
+      // Only scroll if not already in view
+      if (calRect.top > mainRect.bottom || calRect.bottom < mainRect.top) {
+        cal.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  }, 80);
 }

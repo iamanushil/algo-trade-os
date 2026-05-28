@@ -16,10 +16,13 @@ async function init() {
       showMainError("No strategies found from API.");
     }
   } catch (err) {
-    // Show error in both sidebar and main
-    document.getElementById("sidebar-overall").innerHTML = `<div class="error-state" style="font-size:12px;">${err.message}</div>`;
+    document.getElementById("sidebar-overall").innerHTML =
+      `<div class="error-state" style="font-size:12px;">${err.message}</div>`;
     showMainError(err.message);
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", async () => {
+  await init();
+  startNiftyPolling(); // start live NIFTY after strategy loads
+});

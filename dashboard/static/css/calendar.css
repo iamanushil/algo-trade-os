@@ -132,3 +132,21 @@
 }
 .cal-dot.blue { background: var(--accent); }
 .cal-dot.grey { background: var(--muted); }
+
+/* ── Light theme overrides for calendar.css ── */
+[data-theme="light"] .cal-nav-btn {
+  background: rgba(255, 255, 255, 0.60);
+}
+
+[data-theme="light"] .cal-cell.session:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="light"] .cal-cell.no-trade {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .cal-cell.session.selected {
+  box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(99, 102, 241, 0.18), inset 0 1px 0 rgba(99, 102, 241, 0.14);
+}

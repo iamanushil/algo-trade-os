@@ -83,3 +83,8 @@
 .month-btn .month-pnl { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .month-btn .month-pnl.green { color: var(--green); }
 .month-btn .month-pnl.red { color: var(--red); }
+
+/* ── Light theme overrides for sidebar.css ── */
+[data-theme="light"] .sidebar-section {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}

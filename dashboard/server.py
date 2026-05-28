@@ -322,6 +322,42 @@ def strategy_signal(strategy_id: str):
 
 
 # ---------------------------------------------------------------------------
+# Live NIFTY spot  (yfinance, 15 s server-side cache)
+# ---------------------------------------------------------------------------
+_nifty_cache: dict = {"data": None, "fetched_at": 0.0}
+_NIFTY_CACHE_TTL = 15  # seconds
+
+
+@app.route("/api/nifty/spot")
+def nifty_spot():
+    global _nifty_cache
+    now = time.time()
+    if _nifty_cache["data"] and (now - _nifty_cache["fetched_at"]) < _NIFTY_CACHE_TTL:
+        return jsonify(_nifty_cache["data"])
+    try:
+        import yfinance as yf
+        fi = yf.Ticker("^NSEI").fast_info
+        spot = fi.last_price
+        prev = fi.previous_close or spot
+        change = round(spot - prev, 2)
+        change_pct = round((change / prev) * 100, 2) if prev else 0.0
+        data = {
+            "spot": round(spot, 2),
+            "change": change,
+            "change_pct": change_pct,
+            "prev_close": round(prev, 2),
+        }
+        _nifty_cache = {"data": data, "fetched_at": now}
+        return jsonify(data)
+    except Exception as exc:
+        log.warning("Nifty spot fetch failed: %s", exc)
+        # Return stale data (200) so frontend degrades gracefully
+        if _nifty_cache["data"]:
+            return jsonify({**_nifty_cache["data"], "stale": True})
+        return jsonify({"spot": None, "error": str(exc)})
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":

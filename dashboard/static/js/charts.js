@@ -80,35 +80,87 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       // ── Zero baseline ──
       horizLine(0, "rgba(129,140,248,0.28)", [2, 4]);
 
-      // ── Key levels ──
-      vertLine(shortStrike, "rgba(255,95,109,0.85)",  `↓ ${shortStrike.toLocaleString("en-IN")}  Short`);
-      vertLine(longStrike,  "rgba(0,212,170,0.85)",   `↑ ${longStrike.toLocaleString("en-IN")}  Long`);
+      // ── Key levels — draw lines first, labels after with collision detection ──
+      const _levels = [
+        { strike: shortStrike, color: "rgba(255,95,109,0.85)", label: `↓ ${shortStrike.toLocaleString("en-IN")}`, dash: [4, 4] },
+        { strike: longStrike,  color: "rgba(0,212,170,0.85)",  label: `↑ ${longStrike.toLocaleString("en-IN")}`,  dash: [4, 4] },
+      ];
       if (breakeven > shortStrike && breakeven < longStrike) {
-        vertLine(breakeven, "rgba(129,140,248,0.85)", `BE ${breakeven.toLocaleString("en-IN")}`, [6, 3]);
+        _levels.push({ strike: breakeven, color: "rgba(129,140,248,0.85)", label: `BE ${breakeven.toLocaleString("en-IN")}`, dash: [6, 3] });
       }
 
-      // ── Spot price ──
-      if (currentSpot) {
-        const sxPx = xScale.getPixelForValue(currentSpot);
-        if (sxPx >= area.left && sxPx <= area.right) {
+      // Draw all vertical lines first (no labels yet)
+      for (const lv of _levels) {
+        lv.xPx = xScale.getPixelForValue(lv.strike);
+        if (lv.xPx < area.left || lv.xPx > area.right) continue;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash(lv.dash);
+        ctx.strokeStyle = lv.color;
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(lv.xPx, area.top);
+        ctx.lineTo(lv.xPx, area.bottom);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Spot line (draw line only here)
+      const liveSpot = chart._spot ?? currentSpot;
+      let spotXPx = null;
+      if (liveSpot) {
+        spotXPx = xScale.getPixelForValue(liveSpot);
+        if (spotXPx >= area.left && spotXPx <= area.right) {
           ctx.save();
           ctx.beginPath();
           ctx.setLineDash([5, 3]);
           ctx.strokeStyle = "#f5a623";
           ctx.lineWidth = 2;
-          ctx.moveTo(sxPx, area.top);
-          ctx.lineTo(sxPx, area.bottom);
+          ctx.moveTo(spotXPx, area.top);
+          ctx.lineTo(spotXPx, area.bottom);
           ctx.stroke();
           ctx.setLineDash([]);
           ctx.beginPath();
-          ctx.arc(sxPx, area.bottom, 4, 0, Math.PI * 2);
+          ctx.arc(spotXPx, area.bottom, 4, 0, Math.PI * 2);
           ctx.fillStyle = "#f5a623";
           ctx.fill();
-          ctx.font = "bold 10px 'Inter', sans-serif";
-          ctx.fillStyle = "#f5a623";
-          ctx.fillText("Spot", sxPx + 5, area.top + 26);
           ctx.restore();
         }
+      }
+
+      // Now place labels with collision detection (sorted left→right)
+      ctx.font = "bold 10px 'Inter', sans-serif";
+      const ROW_H = 13; // height of one label row
+      const PAD   = 3;  // horizontal gap from line
+
+      // Collect all label candidates (key levels + spot)
+      const _labelCandidates = _levels
+        .filter(lv => lv.xPx != null && lv.xPx >= area.left && lv.xPx <= area.right)
+        .map(lv => ({ xPx: lv.xPx, color: lv.color, text: lv.label }));
+
+      if (spotXPx != null && spotXPx >= area.left && spotXPx <= area.right) {
+        _labelCandidates.push({ xPx: spotXPx, color: "#f5a623", text: "Live" });
+      }
+
+      _labelCandidates.sort((a, b) => a.xPx - b.xPx);
+
+      // Assign rows: track occupied [lx, rx] per row index
+      const _rows = []; // array of [{lx, rx}]
+      for (const lbl of _labelCandidates) {
+        const tw = ctx.measureText(lbl.text).width;
+        const lx = Math.min(lbl.xPx + PAD, area.right - tw - PAD);
+        const rx = lx + tw;
+
+        // Find the first row where [lx, rx] doesn't overlap anything
+        let row = 0;
+        while (_rows[row] && _rows[row].some(seg => lx < seg.rx + PAD && rx > seg.lx - PAD)) {
+          row++;
+        }
+        if (!_rows[row]) _rows[row] = [];
+        _rows[row].push({ lx, rx });
+
+        const y = area.top + 11 + row * ROW_H;
+        ctx.fillStyle = lbl.color;
+        ctx.fillText(lbl.text, lx, y);
       }
 
       // ── Hover crosshair + DhanHQ-style P&L tooltip ──
@@ -288,6 +340,9 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
     },
     plugins: [overlayPlugin],
   });
+
+  // Store spot mutably so live NIFTY updates can move the line
+  _chartStore[canvasId]._spot = currentSpot;
 
   // ── Mouse tracking ─────────────────────────────────────────
   canvas.addEventListener("mousemove", e => {

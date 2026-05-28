@@ -200,7 +200,7 @@ function renderSignalData(section, d) {
         <div class="signal-market-bar">
           <div class="signal-market-item">
             <span class="signal-market-label">Spot (NIFTY)</span>
-            <span class="signal-market-value">${spotStr}${spotChangeStr ? `<span style="font-size:10px;font-weight:500;color:var(--muted);margin-left:4px;">${spotChangeStr}</span>` : ""}</span>
+            <span id="live-signal-spot" class="signal-market-value">${spotStr}${spotChangeStr ? `<span style="font-size:10px;font-weight:500;color:var(--muted);margin-left:4px;">${spotChangeStr}</span>` : ""}</span>
           </div>
           <div class="signal-market-sep"></div>
           <div class="signal-market-item">
