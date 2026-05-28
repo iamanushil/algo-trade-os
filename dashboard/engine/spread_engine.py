@@ -33,6 +33,10 @@ def _load_orders(orders_path: str) -> pd.DataFrame:
     df["price"] = df["price"].astype(float)
     df["side"] = df["side"].str.upper().str.strip()
     df["option_type"] = df["option_type"].str.upper().str.strip()
+    if "nifty_spot" in df.columns:
+        df["nifty_spot"] = pd.to_numeric(df["nifty_spot"], errors="coerce")
+    else:
+        df["nifty_spot"] = float("nan")
     df = df.sort_values("order_id").reset_index(drop=True)
     return df
 
@@ -91,6 +95,7 @@ def _fifo_match(orders: pd.DataFrame) -> tuple[list[dict], list[dict]]:
                 "price": incoming_price,
                 "open_date": incoming_date,
                 "open_time": incoming_time,
+                "nifty_spot": row["nifty_spot"] if not pd.isna(row["nifty_spot"]) else None,
             })
         else:
             # Opposite side — FIFO close
@@ -123,6 +128,8 @@ def _fifo_match(orders: pd.DataFrame) -> tuple[list[dict], list[dict]]:
                     "close_date": incoming_date,
                     "close_time": incoming_time,
                     "spread_role": spread_role,
+                    "nifty_spot_entry": top.get("nifty_spot"),
+                    "nifty_spot_close": row["nifty_spot"] if not pd.isna(row["nifty_spot"]) else None,
                 })
 
                 remaining -= match_qty
@@ -140,6 +147,7 @@ def _fifo_match(orders: pd.DataFrame) -> tuple[list[dict], list[dict]]:
                     "price": incoming_price,
                     "open_date": incoming_date,
                     "open_time": incoming_time,
+                    "nifty_spot": row["nifty_spot"] if not pd.isna(row["nifty_spot"]) else None,
                 })
 
     # Collect open positions
@@ -155,6 +163,7 @@ def _fifo_match(orders: pd.DataFrame) -> tuple[list[dict], list[dict]]:
                 "spread_role": "SHORT_LEG" if lot["side"] == "SELL" else "LONG_LEG",
                 "open_date": lot["open_date"],
                 "open_time": lot.get("open_time", ""),
+                "nifty_spot_entry": lot.get("nifty_spot"),
             })
 
     return realized, open_pos

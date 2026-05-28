@@ -192,6 +192,8 @@ def _serialise_trade(t: dict) -> dict:
         "close_date": _serialise_date(t.get("close_date")),
         "close_time": t.get("close_time", ""),
         "spread_role": t.get("spread_role"),
+        "nifty_spot_entry": t.get("nifty_spot_entry"),
+        "nifty_spot_close": t.get("nifty_spot_close"),
     }
 
 
@@ -204,6 +206,7 @@ def _serialise_open_position(p: dict) -> dict:
         "entry_price": p.get("entry_price"),
         "spread_role": p.get("spread_role"),
         "open_date": _serialise_date(p.get("open_date")),
+        "nifty_spot_entry": p.get("nifty_spot_entry"),
     }
 
 
@@ -294,6 +297,23 @@ def open_positions(strategy_id: str):
             strategy_id, traceback.format_exc()
         )
         return jsonify({"error": "Computation failed — see server logs"}), 500
+
+
+@app.route("/api/strategies/<strategy_id>/signal")
+def strategy_signal(strategy_id: str):
+    from engine.signal_engine import generate_signal
+    _ensure_strategies_fresh()
+    if strategy_id not in _strategies:
+        return jsonify({"error": f"Strategy '{strategy_id}' not found"}), 404
+    try:
+        meta = _strategies[strategy_id]
+        strat_dir = meta["_dir"]
+        capital = float(meta.get("capital", 120_000))
+        sig = generate_signal(strat_dir, capital=capital)
+        return jsonify(sig)
+    except Exception:
+        log.error("Error generating signal for %s:\n%s", strategy_id, traceback.format_exc())
+        return jsonify({"error": "Signal generation failed", "action": "MONITOR"}), 500
 
 
 # ---------------------------------------------------------------------------

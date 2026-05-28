@@ -26,6 +26,7 @@
 
     html, body {
       height: 100%;
+      overflow: hidden;
       background: var(--bg);
       color: var(--text);
       font-family: var(--font);
@@ -40,7 +41,7 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     /* ── Layout wrappers ── */
-    #app { display: flex; flex-direction: column; min-height: 100vh; }
+    #app { display: flex; flex-direction: column; height: 100%; }
 
     /* ── Header ── */
     #header {
@@ -64,12 +65,6 @@
       letter-spacing: -0.3px;
     }
     #header-logo span { color: var(--accent); }
-
-    #header-strategy-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-    }
 
     #header-separator { color: var(--border); font-size: 18px; }
 
@@ -100,58 +95,34 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ── Tab bar ── */
-    #tab-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      height: 44px;
-      flex-shrink: 0;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .tab-btn:hover:not(.disabled) { background: var(--surface2); color: var(--text); }
-    .tab-btn.active {
-      background: var(--accent);
-      color: #fff;
-    }
-    .tab-btn.disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .badge-soon {
+    /* ── Strategy dropdown ── */
+    #strategy-select {
       background: var(--surface2);
+      color: var(--text);
       border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 9px;
-      font-weight: 600;
-      padding: 1px 5px;
-      border-radius: 3px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+      border-radius: 6px;
+      padding: 6px 32px 6px 12px;
+      font-size: 13px;
+      font-family: var(--font);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      min-width: 200px;
     }
+    #strategy-select:hover { border-color: var(--accent); }
+    #strategy-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
 
     /* ── Main content ── */
     #content {
       display: flex;
       flex: 1;
       overflow: hidden;
+      min-height: 0;
+      height: 0;
     }
 
     /* ── Sidebar ── */
@@ -275,11 +246,12 @@
     /* ── Main area ── */
     #main {
       flex: 1;
-      padding: 20px 24px;
+      padding: 20px 24px 40px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 20px;
+      min-height: 0;
     }
 
     /* ── Loading / error states ── */
@@ -677,12 +649,261 @@
     }
     .empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
 
+    /* ── Signal Card ── */
+    #signal-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .signal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .signal-card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .signal-card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .signal-card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .signal-top-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .signal-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 7px 18px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .signal-badge.ENTER  { background: #00c896; color: #001a12; }
+    .signal-badge.MONITOR { background: #f0a500; color: #1a1000; }
+    .signal-badge.WAIT   { background: #e05252; color: #1a0000; }
+    .signal-badge.loading {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .signal-reason {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.55;
+      flex: 1;
+      padding-top: 5px;
+    }
+
+    .signal-strikes {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .signal-strikes-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .signal-strikes-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .signal-strikes-sep {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .strike-short { color: #f87171; }
+    .strike-long  { color: #4ade80; }
+
+    .signal-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .signal-meta-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+
+    .signal-meta-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+    .signal-meta-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .signal-meta-value.bullish { color: var(--green); }
+    .signal-meta-value.bearish { color: var(--red); }
+    .signal-meta-value.neutral { color: var(--gold); }
+
+    .signal-refresh {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .signal-refresh-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .signal-refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .signal-refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .signal-updated {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .signal-unavailable {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 8px 0;
+      font-style: italic;
+    }
+
+    .signal-pnl-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .signal-pnl-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+
+    .signal-pnl-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+    .signal-pnl-value {
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .signal-pnl-value.profit { color: var(--green); }
+    .signal-pnl-value.loss   { color: var(--red); }
+
+    .signal-pnl-note {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 4px;
+    }
+
+    .signal-skeleton-badge {
+      width: 90px;
+      height: 34px;
+      border-radius: 6px;
+    }
+
+    /* ── Payoff diagram ── */
+    .panel-split { display: flex; gap: 16px; align-items: flex-start; }
+    .panel-split-left { flex: 1; min-width: 0; }
+    .panel-split-right { width: 360px; flex-shrink: 0; min-width: 0; }
+    @media (max-width: 1100px) { .panel-split { flex-direction: column; } .panel-split-right { width: 100%; } }
+
+    .payoff-canvas-wrap {
+      margin-top: 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px 8px;
+      position: relative;
+    }
+    .payoff-canvas-wrap canvas { display: block; width: 100% !important; height: 200px !important; }
+
+    /* ── Leg P&L bar chart ── */
+    .leg-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .leg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+    .leg-bar-label { width: 120px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .leg-bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; position: relative; }
+    .leg-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+    .leg-bar-fill.profit { background: var(--green); }
+    .leg-bar-fill.loss   { background: var(--red); }
+    .leg-bar-value { width: 88px; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; }
+    .leg-bar-value.green { color: var(--green); }
+    .leg-bar-value.red   { color: var(--red); }
+
     /* ── Responsive ── */
     @media (max-width: 768px) {
       #sidebar { display: none; }
       #header-logo { display: none; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div id="app">
@@ -690,16 +911,15 @@
   <header id="header">
     <div id="header-logo">algo<span>OS</span></div>
     <div id="header-separator">|</div>
-    <div id="header-strategy-name">Loading…</div>
+    <div id="strategy-picker">
+      <select id="strategy-select"></select>
+    </div>
     <span class="badge-live">Live</span>
     <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
       <div id="header-pct" class="text-muted"></div>
       <div id="header-pnl">—</div>
     </div>
   </header>
-
-  <!-- Tab bar -->
-  <nav id="tab-bar"></nav>
 
   <!-- Content -->
   <div id="content">
@@ -764,6 +984,7 @@ let state = {
   selectedDate: null,
   trades: [],            // [{expiry, strike, option_type, qty, entry_price, exit_price, leg_pnl, spread_role}]
   loadingTrades: false,
+  signalData: null,
 };
 
 // ── Formatting helpers ───────────────────────────────────────
@@ -841,38 +1062,40 @@ function html(str) {
   return d;
 }
 
-// ── Tabs ─────────────────────────────────────────────────────
-function renderTabs() {
-  const bar = document.getElementById("tab-bar");
-  bar.innerHTML = "";
+// ── Strategy dropdown ─────────────────────────────────────────
+function renderStrategyDropdown() {
+  const select = document.getElementById("strategy-select");
+  if (!select) return;
+
+  // Rebuild options only when the strategy list changes
+  select.innerHTML = "";
 
   if (!state.strategies.length) {
-    bar.appendChild(el("span", { class: "text-muted text-sm" }, "No strategies found"));
+    const opt = document.createElement("option");
+    opt.textContent = "No strategies found";
+    opt.disabled = true;
+    select.appendChild(opt);
     return;
   }
 
   for (const s of state.strategies) {
-    const isActive = s.id === state.activeStrategyId;
-    const isSoon = s.status === "coming_soon";
-
-    const btn = el("button", {
-      class: ["tab-btn", isActive ? "active" : "", isSoon ? "disabled" : ""].filter(Boolean).join(" "),
-    }, s.name);
-
-    if (isSoon) {
-      btn.appendChild(el("span", { class: "badge-soon" }, "soon"));
-    }
-
-    if (!isSoon) {
-      btn.addEventListener("click", () => {
-        if (s.id !== state.activeStrategyId) {
-          selectStrategy(s.id);
-        }
-      });
-    }
-
-    bar.appendChild(btn);
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = s.status === "coming_soon" ? s.name + " (soon)" : s.name;
+    opt.disabled = s.status === "coming_soon";
+    if (s.id === state.activeStrategyId) opt.selected = true;
+    select.appendChild(opt);
   }
+
+  // Remove any pre-existing listener by replacing the element clone trick
+  const fresh = select.cloneNode(true);
+  select.parentNode.replaceChild(fresh, select);
+  fresh.addEventListener("change", () => {
+    const id = fresh.value;
+    if (id && id !== state.activeStrategyId) {
+      selectStrategy(id);
+    }
+  });
 }
 
 // ── Select strategy ───────────────────────────────────────────
@@ -886,12 +1109,10 @@ async function selectStrategy(id) {
   state.selectedDate = null;
   state.trades = [];
 
-  renderTabs();
+  renderStrategyDropdown();
   showMainLoading();
   renderSidebarSkeleton();
 
-  const strat = state.strategies.find(s => s.id === id);
-  document.getElementById("header-strategy-name").textContent = strat ? strat.name : "—";
   document.getElementById("header-pnl").textContent = "—";
   document.getElementById("header-pnl").className = "";
   document.getElementById("header-pct").textContent = "";
@@ -921,6 +1142,7 @@ async function selectStrategy(id) {
     renderSidebarOverall();
     renderSidebarMonths();
     renderMain();
+    scheduleSignalRefresh(id);
   } catch (err) {
     showMainError(err.message);
   }
@@ -968,7 +1190,7 @@ function renderSidebarOverall() {
 
   const rows = [
     ["Sessions", s.sessions_count],
-    ["Win Rate", { val: (s.win_rate * 100).toFixed(1) + "%", cls: "gold" }],
+    ["Win Rate", { val: s.win_rate.toFixed(1) + "%", cls: "gold" }],
     ["W / L", `${s.wins} / ${s.losses}`],
     ["Best Day", { val: fmt(s.best_session?.pnl ?? 0), cls: "green" }],
     ["Worst Day", { val: fmt(s.worst_session?.pnl ?? 0), cls: "red" }],
@@ -987,12 +1209,6 @@ function renderSidebarOverall() {
     overall.appendChild(row);
   }
 
-  if (s.best_session) {
-    const sub = el("div", { class: "metric-row", style: "margin-top:4px;" });
-    sub.appendChild(el("span", { class: "metric-label" }, ""));
-    sub.appendChild(el("span", { class: "text-muted text-sm" }, fmtDate(s.best_session.date)));
-    overall.appendChild(sub);
-  }
 }
 
 function renderSidebarMonths() {
@@ -1075,6 +1291,14 @@ function renderMain() {
     main.appendChild(buildActivePositionPanel());
   }
 
+  // Signal section — inserted prominently before the calendar
+  const signalSection = el("div", { id: "signal-section" });
+  main.appendChild(signalSection);
+  // Kick off signal load after rendering (non-blocking)
+  if (state.activeStrategyId) {
+    loadSignal(state.activeStrategyId);
+  }
+
   // Calendar panel
   if (state.selectedMonth) {
     main.appendChild(buildCalendarPanel());
@@ -1089,6 +1313,130 @@ function renderMain() {
   if (state.selectedDate !== null) {
     main.appendChild(buildTradeDetailPanel());
   }
+}
+
+// ── Payoff diagram ────────────────────────────────────────────
+const _chartStore = {};
+
+function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit, qty, currentSpot) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === "undefined") return;
+  if (_chartStore[canvasId]) { _chartStore[canvasId].destroy(); delete _chartStore[canvasId]; }
+
+  const spread = longStrike - shortStrike;
+  const step = spread <= 200 ? 10 : spread <= 500 ? 25 : 50;
+  const lo = shortStrike - spread - 100;
+  const hi = longStrike  + spread + 100;
+  const spots = [];
+  for (let s = lo; s <= hi; s += step) spots.push(s);
+
+  const pnls = spots.map(s => {
+    if (s <= shortStrike) return netCreditPerUnit * qty;
+    if (s <= longStrike)  return (netCreditPerUnit - (s - shortStrike)) * qty;
+    return (netCreditPerUnit - spread) * qty;
+  });
+
+  const posData = pnls.map((p, i) => ({ x: spots[i], y: p >= 0 ? p : null }));
+  const negData = pnls.map((p, i) => ({ x: spots[i], y: p <  0 ? p : null }));
+
+  const maxP = netCreditPerUnit * qty;
+  const minP = (netCreditPerUnit - spread) * qty;
+  const pad  = Math.abs(maxP - minP) * 0.15 || 1000;
+
+  _chartStore[canvasId] = new Chart(canvas, {
+    type: "line",
+    data: {
+      datasets: [
+        {
+          label: "Profit zone",
+          data: posData,
+          borderColor: "#22c55e",
+          backgroundColor: "rgba(34,197,94,0.12)",
+          borderWidth: 2,
+          fill: true,
+          pointRadius: 0,
+          tension: 0,
+          spanGaps: false,
+        },
+        {
+          label: "Loss zone",
+          data: negData,
+          borderColor: "#ef4444",
+          backgroundColor: "rgba(239,68,68,0.12)",
+          borderWidth: 2,
+          fill: true,
+          pointRadius: 0,
+          tension: 0,
+          spanGaps: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (v == null) return null;
+              return (v >= 0 ? "+₹" : "-₹") + Math.abs(v).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+            },
+            title: ctx => `NIFTY ${ctx[0].parsed.x.toLocaleString("en-IN")}`,
+          },
+        },
+        annotation: undefined,
+      },
+      scales: {
+        x: {
+          type: "linear",
+          grid: { color: "rgba(42,51,71,0.6)" },
+          ticks: {
+            color: "#64748b",
+            maxTicksLimit: 8,
+            callback: v => v.toLocaleString("en-IN"),
+          },
+          min: lo,
+          max: hi,
+        },
+        y: {
+          grid: { color: "rgba(42,51,71,0.6)" },
+          ticks: {
+            color: "#64748b",
+            callback: v => (v >= 0 ? "+" : "") + "₹" + Math.abs(v).toLocaleString("en-IN"),
+          },
+          min: minP - pad,
+          max: maxP + pad,
+        },
+      },
+    },
+  });
+
+  // Draw spot line as a canvas overlay after Chart renders
+  setTimeout(() => {
+    const ch = _chartStore[canvasId];
+    if (!ch) return;
+    const area = ch.chartArea;
+    if (!area) return;
+    const ctx2 = canvas.getContext("2d");
+    const xScale = ch.scales.x;
+    const xPx = xScale.getPixelForValue(currentSpot);
+    if (xPx < area.left || xPx > area.right) return;
+    ctx2.save();
+    ctx2.beginPath();
+    ctx2.setLineDash([4, 4]);
+    ctx2.strokeStyle = "#f59e0b";
+    ctx2.lineWidth = 1.5;
+    ctx2.moveTo(xPx, area.top);
+    ctx2.lineTo(xPx, area.bottom);
+    ctx2.stroke();
+    ctx2.font = "11px 'Segoe UI', sans-serif";
+    ctx2.fillStyle = "#f59e0b";
+    ctx2.fillText("Spot", xPx + 4, area.top + 14);
+    ctx2.restore();
+  }, 60);
 }
 
 // ── Active Positions ──────────────────────────────────────────
@@ -1115,15 +1463,22 @@ function buildActivePositionPanel() {
       el("span", { class: "role-badge " + pos.spread_role }, pos.spread_role.replace(/_/g, " ")),
       el("span", { class: "leg-detail" },
         el("strong", {}, `Qty: ${Math.abs(pos.qty)}`),
+        (() => {
+          const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+          const actionLabel = (pos.spread_role === "SHORT_LEG" || pos.spread_role === "SHORT_LEG_ADJ") ? "Sold" : "Bought";
+          const openDateStr = pos.open_date ? (() => {
+            const [y, m, d] = pos.open_date.split("-").map(Number);
+            return `${d} ${mon[m-1]}`;
+          })() : null;
+          return openDateStr ? document.createTextNode(` ${actionLabel} ${openDateStr}`) : null;
+        })(),
         document.createTextNode(` · Entry @ ₹${pos.entry_price.toFixed(2)}`),
-        pos.expiry_date ? el("span", { class: "text-muted" }, ` · ${fmtDate(pos.expiry_date)}`) : null,
+        pos.expiry_date ? el("span", { class: "text-muted" }, ` · Expiry ${fmtDate(pos.expiry_date)}`) : null,
         dteStr ? el("span", { class: "text-muted", style: "margin-left:6px;color:var(--gold);" }, `(${dteStr})`) : null
       )
     );
     legsGrid.appendChild(row);
   }
-  body.appendChild(legsGrid);
-
   // Compute position metrics
   const metrics = computePositionMetrics(state.openPositions);
 
@@ -1147,8 +1502,39 @@ function buildActivePositionPanel() {
     );
   }
 
-  body.appendChild(metricsGrid);
+  // Two-column split: data left, chart right
+  const leftCol  = el("div", { class: "panel-split-left" });
+  const rightCol = el("div", { class: "panel-split-right" });
+  const split    = el("div", { class: "panel-split" });
+
+  leftCol.appendChild(legsGrid);
+  leftCol.appendChild(metricsGrid);
+
+  const payoffWrap = el("div", { class: "payoff-canvas-wrap", style: "margin-top:0;" });
+  const payoffCanvas = el("canvas", { id: "active-payoff-chart" });
+  payoffWrap.appendChild(payoffCanvas);
+  rightCol.appendChild(payoffWrap);
+
+  split.appendChild(leftCol);
+  split.appendChild(rightCol);
+  body.appendChild(split);
+
   panel.appendChild(body);
+
+  // Draw after DOM insertion
+  const shorts = state.openPositions.filter(p => p.spread_role === "SHORT_LEG" || p.spread_role === "SHORT_LEG_ADJ");
+  const longs  = state.openPositions.filter(p => p.spread_role === "LONG_LEG"  || p.spread_role === "LONG_LEG_ADJ");
+  if (shorts.length && longs.length) {
+    const sStrike = shorts[0].strike;
+    const lStrike = longs[0].strike;
+    const nc      = shorts[0].entry_price - longs[0].entry_price;
+    const qty     = Math.abs(shorts[0].qty);
+    const spot    = state.signalData?.spot ?? (sStrike - 200);
+    if (nc > 0) {
+      setTimeout(() => drawBearCallPayoff("active-payoff-chart", sStrike, lStrike, nc, qty, spot), 0);
+    }
+  }
+
   return panel;
 }
 
@@ -1418,6 +1804,56 @@ function refreshCalendarSelection() {
   });
 }
 
+// ── Session payoff spot markers ───────────────────────────────
+function _addSessionSpotMarkers(canvasId, spotEntry, spotClose, shortStrike, longStrike, nc, qty) {
+  if (!spotEntry && !spotClose) return;
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ch = _chartStore[canvasId];
+  if (!ch) return;
+  const area = ch.chartArea;
+  const xScale = ch.scales.x;
+  const yScale = ch.scales.y;
+  const ctx = canvas.getContext("2d");
+  const spread = longStrike - shortStrike;
+
+  function payoffAt(s) {
+    if (s <= shortStrike) return nc * qty;
+    if (s <= longStrike)  return (nc - (s - shortStrike)) * qty;
+    return (nc - spread) * qty;
+  }
+
+  function drawMarker(spot, color, label) {
+    const xPx = xScale.getPixelForValue(spot);
+    if (xPx < area.left || xPx > area.right) return;
+    const pnl = payoffAt(spot);
+    const yPx = yScale.getPixelForValue(pnl);
+    ctx.save();
+    // vertical line
+    ctx.beginPath();
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.moveTo(xPx, area.top);
+    ctx.lineTo(xPx, area.bottom);
+    ctx.stroke();
+    // dot at payoff curve
+    ctx.beginPath();
+    ctx.setLineDash([]);
+    ctx.arc(xPx, yPx, 4, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    // label
+    ctx.font = "11px 'Segoe UI', sans-serif";
+    ctx.fillStyle = color;
+    ctx.fillText(label, xPx + 5, area.top + 14);
+    ctx.restore();
+  }
+
+  if (spotEntry) drawMarker(spotEntry, "#f59e0b", "Entry");
+  if (spotClose) drawMarker(spotClose, "#94a3b8", "Exit");
+}
+
 // ── Trade Detail ──────────────────────────────────────────────
 function buildTradeDetailPanel() {
   const panel = el("div", { class: "panel", id: "trade-detail-panel" });
@@ -1492,6 +1928,35 @@ function buildTradeDetailPanel() {
       tbody.appendChild(tr);
     }
     table.appendChild(tbody);
+
+    const maxAbs = Math.max(...state.trades.map(t => Math.abs(t.leg_pnl ?? 0)), 1);
+    const barsDiv = el("div", { class: "leg-bars" });
+    for (const t of state.trades) {
+      const pnl   = t.leg_pnl ?? 0;
+      const pct   = Math.round(Math.abs(pnl) / maxAbs * 55);  // max 55% width
+      const cls   = pnl >= 0 ? "profit" : "loss";
+      const vcls  = pnl >= 0 ? "green" : "red";
+      const role  = (t.spread_role || "").includes("SHORT") ? "SHORT" : "LONG";
+      const label = `${t.strike} ${t.option_type} · ${role}`;
+
+      const fill  = el("div", { class: `leg-bar-fill ${cls}`, style: `width:${pct}%` });
+      const track = el("div", { class: "leg-bar-track" }, fill);
+
+      barsDiv.appendChild(
+        el("div", { class: "leg-bar-row" },
+          el("div", { class: "leg-bar-label", title: label }, label),
+          track,
+          el("div", { class: `leg-bar-value ${vcls}` }, fmt(pnl))
+        )
+      );
+    }
+    body.appendChild(barsDiv);
+
+    const sessionPayoffWrap = el("div", { class: "payoff-canvas-wrap", style: "margin-bottom:16px;" });
+    const sessionPayoffCanvas = el("canvas", { id: "session-payoff-chart" });
+    sessionPayoffWrap.appendChild(sessionPayoffCanvas);
+    body.appendChild(sessionPayoffWrap);
+
     body.appendChild(table);
 
     // Session Total uses authoritative P&L from session object (not sum of visible legs)
@@ -1503,7 +1968,274 @@ function buildTradeDetailPanel() {
   }
 
   panel.appendChild(body);
+
+  // Draw session payoff chart if we have both legs
+  const shorts = state.trades.filter(t => (t.spread_role || "").includes("SHORT"));
+  const longs  = state.trades.filter(t => (t.spread_role || "").includes("LONG"));
+  if (shorts.length && longs.length) {
+    const shortStrike = shorts[0].strike;
+    const longStrike  = longs[0].strike;
+    const nc          = shorts[0].entry_price - longs[0].entry_price;
+    const qty         = Math.abs(shorts[0].qty);
+    const spotEntry   = shorts[0].nifty_spot_entry ?? null;
+    const spotClose   = shorts[0].nifty_spot_close ?? null;
+    const displaySpot = spotClose ?? spotEntry ?? (shortStrike + (longStrike - shortStrike) / 2);
+    setTimeout(() => {
+      drawBearCallPayoff("session-payoff-chart", shortStrike, longStrike, nc, qty, displaySpot);
+      setTimeout(() => _addSessionSpotMarkers("session-payoff-chart", spotEntry, spotClose, shortStrike, longStrike, nc, qty), 120);
+    }, 0);
+  }
+
   return panel;
+}
+
+// ── Signal ────────────────────────────────────────────────────
+let signalRefreshTimer = null;
+
+async function loadSignal(strategyId) {
+  const section = document.getElementById("signal-section");
+  if (!section) return;
+
+  // Show skeleton while loading
+  renderSignalSkeleton(section);
+
+  try {
+    const data = await apiFetch(`/api/strategies/${strategyId}/signal`);
+    renderSignalData(section, data);
+  } catch (err) {
+    renderSignalError(section, err.message);
+  }
+}
+
+function renderSignalSkeleton(section) {
+  section.innerHTML = `
+    <div class="signal-card">
+      <div class="signal-card-header">
+        <span class="signal-card-title">Next Signal</span>
+        <div class="signal-refresh" style="margin-left:auto;">
+          <span class="signal-updated text-muted">Loading…</span>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        <div class="signal-top-row">
+          <div class="skeleton signal-skeleton-badge"></div>
+          <div style="flex:1;padding-top:4px;">
+            <div class="skeleton skeleton-line" style="width:85%;"></div>
+            <div class="skeleton skeleton-line" style="width:60%;"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-line" style="width:100%;height:42px;border-radius:7px;"></div>
+        <div class="signal-meta">
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSignalData(section, d) {
+  const action = d.action || "WAIT";
+  const updated = d.updated_at ? (() => {
+    const dt = new Date(d.updated_at);
+    return dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) + " IST";
+  })() : "—";
+
+  const spotChangeStr = d.spot_change_pct != null
+    ? (d.spot_change_pct >= 0 ? "+" : "") + d.spot_change_pct.toFixed(2) + "%"
+    : "";
+  const spotStr = d.spot != null
+    ? "₹" + d.spot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "—";
+
+  const trendCls = (d.trend || "").toLowerCase();
+  const trendDisplay = d.trend || "—";
+  const pcrStr = d.pcr != null ? d.pcr.toFixed(2) : "—";
+  const maxPainStr = d.max_pain != null ? "₹" + d.max_pain.toLocaleString("en-IN") : "—";
+  const entryWindow = d.entry_window || "—";
+
+  const ss = d.suggested_spread;
+  const hasSpread = ss && (ss.short_strike || ss.long_strike);
+
+  let strikesHTML = "";
+  if (hasSpread) {
+    const short = ss.short_strike != null ? ss.short_strike.toLocaleString("en-IN") : "—";
+    const long  = ss.long_strike  != null ? ss.long_strike.toLocaleString("en-IN")  : "—";
+    const lots  = ss.lot_size     != null ? ` · ${ss.lot_size} qty` : "";
+    strikesHTML = `
+      <div class="signal-strikes">
+        <span class="signal-strikes-label">Suggested Spread</span>
+        <span class="signal-strikes-value">
+          <span class="strike-short">${short} CE ↓</span>
+          <span class="signal-strikes-sep"> | </span>
+          <span class="strike-long">${long} CE ↑</span>
+        </span>
+        ${lots ? `<span class="signal-updated">${lots}</span>` : ""}
+      </div>
+    `;
+  }
+
+  // ── P&L row for suggested spread ──────────────────────────────
+  let pnlRowHTML = "";
+  if (hasSpread) {
+    const fmtRupee = v =>
+      "₹" + Math.abs(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const maxProfitVal  = ss.max_profit  != null ? `<span class="signal-pnl-value profit">+${fmtRupee(ss.max_profit)}</span>`  : `<span class="signal-pnl-value">—</span>`;
+    const maxLossVal    = ss.max_loss    != null ? `<span class="signal-pnl-value loss">-${fmtRupee(ss.max_loss)}</span>`      : `<span class="signal-pnl-value">—</span>`;
+    const netCreditVal  = ss.net_credit  != null
+      ? `<span class="signal-pnl-value">${fmtRupee(ss.net_credit)}<span style="font-size:10px;color:var(--muted);font-weight:500;">/unit</span></span>`
+      : `<span class="signal-pnl-value">—</span>`;
+    const breakevenVal  = ss.breakeven   != null
+      ? `<span class="signal-pnl-value">${ss.breakeven.toLocaleString("en-IN")}</span>`
+      : `<span class="signal-pnl-value">—</span>`;
+
+    const nullNote = ss.net_credit == null
+      ? `<div class="signal-pnl-note">Premiums unavailable (market closed) · P&amp;L and chart are theoretical estimates</div>`
+      : "";
+
+    pnlRowHTML = `
+      <div class="signal-pnl-row">
+        <div class="signal-pnl-chip">
+          <div class="signal-pnl-label">Max Profit</div>
+          ${maxProfitVal}
+        </div>
+        <div class="signal-pnl-chip">
+          <div class="signal-pnl-label">Max Loss</div>
+          ${maxLossVal}
+        </div>
+        <div class="signal-pnl-chip">
+          <div class="signal-pnl-label">Net Credit</div>
+          ${netCreditVal}
+        </div>
+        <div class="signal-pnl-chip">
+          <div class="signal-pnl-label">Breakeven</div>
+          ${breakevenVal}
+        </div>
+      </div>
+      ${nullNote}
+    `;
+  }
+
+  const errorHTML = d.error
+    ? `<div class="signal-unavailable">Signal unavailable — ${d.error}</div>`
+    : "";
+
+  const hasChart = hasSpread && ss.short_strike && ss.long_strike;
+
+  section.innerHTML = `
+    <div class="signal-card">
+      <div class="signal-card-header">
+        <span class="signal-card-title">Next Signal</span>
+        <div class="signal-refresh">
+          <span class="signal-updated" id="signal-updated-ts">Updated ${updated}</span>
+          <button class="signal-refresh-btn" id="signal-refresh-btn" title="Refresh signal">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        ${errorHTML}
+        <div class="panel-split">
+          <div class="panel-split-left">
+            <div class="signal-top-row">
+              <span class="signal-badge ${action}">${action}</span>
+              <div class="signal-reason">${d.action_reason || "No reason provided."}</div>
+            </div>
+            ${hasSpread ? strikesHTML : ""}
+            ${hasSpread ? pnlRowHTML : ""}
+            <div class="signal-meta">
+              <div class="signal-meta-item">
+                <div class="signal-meta-label">Spot (NIFTY)</div>
+                <div class="signal-meta-value">${spotStr}${spotChangeStr ? ` <span style="font-size:11px;color:var(--muted);">${spotChangeStr}</span>` : ""}</div>
+              </div>
+              <div class="signal-meta-item">
+                <div class="signal-meta-label">Trend</div>
+                <div class="signal-meta-value ${trendCls}">${trendDisplay}</div>
+              </div>
+              <div class="signal-meta-item">
+                <div class="signal-meta-label">PCR</div>
+                <div class="signal-meta-value">${pcrStr}</div>
+              </div>
+              <div class="signal-meta-item">
+                <div class="signal-meta-label">Max Pain</div>
+                <div class="signal-meta-value">${maxPainStr}</div>
+              </div>
+              <div class="signal-meta-item">
+                <div class="signal-meta-label">Entry Window</div>
+                <div class="signal-meta-value" style="font-size:12px;">${entryWindow}</div>
+              </div>
+            </div>
+          </div>
+          ${hasChart ? `
+          <div class="panel-split-right">
+            <div class="payoff-canvas-wrap" style="margin-top:0;">
+              <canvas id="signal-payoff-chart"></canvas>
+            </div>
+          </div>
+          ` : ""}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Wire up refresh button
+  const refreshBtn = document.getElementById("signal-refresh-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (state.activeStrategyId) {
+        refreshBtn.disabled = true;
+        loadSignal(state.activeStrategyId).finally(() => {
+          const btn = document.getElementById("signal-refresh-btn");
+          if (btn) btn.disabled = false;
+        });
+      }
+    });
+  }
+
+  if (hasChart) {
+    // Use actual credit if available; fall back to ~10% of spread width as a theoretical shape
+    const nc  = ss.net_credit ?? ((ss.long_strike - ss.short_strike) * 0.10);
+    const qty = ss.lot_size  ?? 65;
+    const sp  = d.spot ?? ss.short_strike;
+    setTimeout(() => drawBearCallPayoff("signal-payoff-chart", ss.short_strike, ss.long_strike, nc, qty, sp), 0);
+  }
+  state.signalData = d;
+}
+
+function renderSignalError(section, msg) {
+  section.innerHTML = `
+    <div class="signal-card">
+      <div class="signal-card-header">
+        <span class="signal-card-title">Next Signal</span>
+        <div class="signal-refresh">
+          <button class="signal-refresh-btn" id="signal-refresh-btn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        <div class="signal-unavailable">Signal unavailable — ${msg}</div>
+      </div>
+    </div>
+  `;
+  const refreshBtn = document.getElementById("signal-refresh-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (state.activeStrategyId) loadSignal(state.activeStrategyId);
+    });
+  }
+}
+
+function scheduleSignalRefresh(strategyId) {
+  if (signalRefreshTimer) clearInterval(signalRefreshTimer);
+  signalRefreshTimer = setInterval(() => {
+    const section = document.getElementById("signal-section");
+    if (section && state.activeStrategyId === strategyId) {
+      loadSignal(strategyId);
+    } else {
+      clearInterval(signalRefreshTimer);
+    }
+  }, 300000); // 5 minutes
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────
@@ -1512,7 +2244,7 @@ async function init() {
     const strategies = await apiFetch("/api/strategies");
     state.strategies = strategies || [];
 
-    renderTabs();
+    renderStrategyDropdown();
 
     // Select first active strategy
     const first = state.strategies.find(s => s.status !== "coming_soon") || state.strategies[0];
@@ -1525,7 +2257,6 @@ async function init() {
     // Show error in both sidebar and main
     document.getElementById("sidebar-overall").innerHTML = `<div class="error-state" style="font-size:12px;">${err.message}</div>`;
     showMainError(err.message);
-    document.getElementById("header-strategy-name").textContent = "Disconnected";
   }
 }
 
