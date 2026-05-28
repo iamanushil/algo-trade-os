@@ -10,10 +10,20 @@ function buildTradeDetailPanel() {
   // Find expiry from trades
   const expiry = state.trades.length ? state.trades[0].expiry : null;
 
+  // Extract entry/exit times from first SHORT leg
+  const firstShort = state.trades.find(t => (t.spread_role || "").includes("SHORT"));
+  const entryTime = firstShort?.open_time || null;
+  const exitTime  = firstShort?.close_time || null;
+  const timeInfo  = [
+    entryTime ? `Entered ${entryTime}` : null,
+    exitTime  ? `Closed ${exitTime}` : null,
+  ].filter(Boolean).join(" · ");
+
   const header = el("div", { class: "panel-header" },
     el("div", { class: "flex items-center gap-8" },
       el("span", { class: "panel-title" }, fmtDate(state.selectedDate)),
-      expiry ? el("span", { class: "detail-expiry" }, `Expiry: ${fmtDate(expiry)}`) : null
+      expiry   ? el("span", { class: "detail-expiry" }, `Expiry: ${fmtDate(expiry)}`) : null,
+      timeInfo ? el("span", { class: "detail-session-times" }, timeInfo) : null
     ),
     el("div", { class: "detail-header-right" },
       el("span", {
@@ -132,10 +142,16 @@ function buildTradeDetailPanel() {
     }
     body.appendChild(barsDiv);
 
-    const sessionPayoffWrap = el("div", { class: "payoff-canvas-wrap", style: "margin-bottom:16px;" });
+    const sessionPayoffWrap = el("div", { class: "payoff-canvas-wrap" });
     const sessionPayoffCanvas = el("canvas", { id: "session-payoff-chart" });
     sessionPayoffWrap.appendChild(sessionPayoffCanvas);
     body.appendChild(sessionPayoffWrap);
+
+    // Note explaining the chart is theoretical (actual profit came from early exit)
+    body.appendChild(el("div", { class: "chart-note-muted" },
+      "Theoretical payoff at expiry" +
+      (exitTime ? ` · position was closed early at ${exitTime} — actual P&L differs from the curve` : "")
+    ));
 
     body.appendChild(table);
 

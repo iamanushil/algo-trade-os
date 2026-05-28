@@ -82,6 +82,45 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
       // ── Zero baseline ──
       horizLine(0, "rgba(129,140,248,0.28)", [2, 4]);
 
+      // ── Realized P&L line (redrawn every afterDraw so hover doesn't wipe it) ──
+      if (chart._realizedPnl != null) {
+        const rPnl = chart._realizedPnl;
+        const yPx = yScale.getPixelForValue(rPnl);
+        if (yPx >= area.top && yPx <= area.bottom) {
+          const isProfit = rPnl >= 0;
+          const rColor = isProfit ? "rgba(0,212,170,0.90)" : "rgba(255,95,109,0.90)";
+          const sign   = isProfit ? "+" : "−";
+          const rLabel = `Closed ${sign}₹${Math.abs(rPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = rColor;
+          ctx.lineWidth = 2;
+          ctx.moveTo(area.left, yPx);
+          ctx.lineTo(area.right, yPx);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = "bold 10px 'Inter', sans-serif";
+          const rtw = ctx.measureText(rLabel).width;
+          const rlx = area.right - rtw - 8;
+          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
+          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 11, rtw + 8, 14, 3);
+          else ctx.rect(rlx - 4, yPx - 11, rtw + 8, 14);
+          ctx.fill();
+          ctx.fillStyle = rColor;
+          ctx.fillText(rLabel, rlx, yPx - 1);
+          ctx.font = "600 9px 'Inter', sans-serif";
+          const rsw = ctx.measureText("Realized").width;
+          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
+          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 11, rsw + 8, 14, 3);
+          else ctx.rect(area.left, yPx - 11, rsw + 8, 14);
+          ctx.fill();
+          ctx.fillStyle = rColor;
+          ctx.fillText("Realized", area.left + 4, yPx - 1);
+          ctx.restore();
+        }
+      }
+
       // ── Key levels — draw lines first, labels after with collision detection ──
       const _levels = [
         { strike: shortStrike, color: "rgba(255,95,109,0.85)", label: `↓ ${shortStrike.toLocaleString("en-IN")}`, dash: [4, 4] },
@@ -440,6 +479,45 @@ function drawMultiSpreadPayoff(canvasId, spreads, currentSpot, isLive = false) {
         ctx.restore();
       }
 
+      // ── Realized P&L line (redrawn every afterDraw so hover doesn't wipe it) ──
+      if (chart._realizedPnl != null) {
+        const rPnl = chart._realizedPnl;
+        const yPx = yScale.getPixelForValue(rPnl);
+        if (yPx >= area.top && yPx <= area.bottom) {
+          const isProfit = rPnl >= 0;
+          const rColor = isProfit ? "rgba(0,212,170,0.90)" : "rgba(255,95,109,0.90)";
+          const sign   = isProfit ? "+" : "−";
+          const rLabel = `Closed ${sign}₹${Math.abs(rPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = rColor;
+          ctx.lineWidth = 2;
+          ctx.moveTo(area.left, yPx);
+          ctx.lineTo(area.right, yPx);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = "bold 10px 'Inter', sans-serif";
+          const rtw = ctx.measureText(rLabel).width;
+          const rlx = area.right - rtw - 8;
+          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
+          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 11, rtw + 8, 14, 3);
+          else ctx.rect(rlx - 4, yPx - 11, rtw + 8, 14);
+          ctx.fill();
+          ctx.fillStyle = rColor;
+          ctx.fillText(rLabel, rlx, yPx - 1);
+          ctx.font = "600 9px 'Inter', sans-serif";
+          const rsw = ctx.measureText("Realized").width;
+          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
+          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 11, rsw + 8, 14, 3);
+          else ctx.rect(area.left, yPx - 11, rsw + 8, 14);
+          ctx.fill();
+          ctx.fillStyle = rColor;
+          ctx.fillText("Realized", area.left + 4, yPx - 1);
+          ctx.restore();
+        }
+      }
+
       // Strike lines for each spread, labeled S1↓/S2↓ etc.
       ctx.font = "bold 10px 'Inter', sans-serif";
       const ROW_H = 13;
@@ -756,39 +834,7 @@ function _addSessionSpotMarkers(canvasId, spotEntry, spotClose, shortStrike, lon
 function _addRealizedLine(canvasId, realizedPnl) {
   const ch = _chartStore[canvasId];
   if (!ch) return;
-  const { ctx, chartArea: area, scales: { y: yScale } } = ch;
-  if (!area) return;
-
-  const yPx = yScale.getPixelForValue(realizedPnl);
-  if (yPx < area.top || yPx > area.bottom) return;
-
-  const isProfit = realizedPnl >= 0;
-  const color    = isProfit ? "rgba(0,212,170,0.80)" : "rgba(255,95,109,0.80)";
-  const sign     = isProfit ? "+" : "−";
-  const label    = `Closed ${sign}₹${Math.abs(realizedPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.setLineDash([6, 3]);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.moveTo(area.left, yPx);
-  ctx.lineTo(area.right, yPx);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  ctx.font = "bold 10px 'Inter', sans-serif";
-  const tw = ctx.measureText(label).width;
-  const lx = area.right - tw - 8;
-
-  // Pill background
-  ctx.fillStyle = isProfit ? "rgba(0,212,170,0.14)" : "rgba(255,95,109,0.14)";
-  ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(lx - 4, yPx - 11, tw + 8, 14, 3);
-  else ctx.fillRect(lx - 4, yPx - 11, tw + 8, 14);
-  ctx.fill();
-
-  ctx.fillStyle = color;
-  ctx.fillText(label, lx, yPx - 1);
-  ctx.restore();
+  // Store on chart instance so afterDraw redraws it on every hover
+  ch._realizedPnl = realizedPnl;
+  ch.update("none");
 }
