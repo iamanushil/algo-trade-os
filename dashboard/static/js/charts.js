@@ -88,32 +88,38 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         const yPx = yScale.getPixelForValue(rPnl);
         if (yPx >= area.top && yPx <= area.bottom) {
           const isProfit = rPnl >= 0;
-          const rColor = isProfit ? "rgba(0,212,170,0.90)" : "rgba(255,95,109,0.90)";
+          const rColor = isProfit ? "rgba(0,212,170,1.0)" : "rgba(255,95,109,1.0)";
+          const rColorDim = isProfit ? "rgba(0,212,170,0.28)" : "rgba(255,95,109,0.28)";
           const sign   = isProfit ? "+" : "−";
           const rLabel = `Closed ${sign}₹${Math.abs(rPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
           ctx.save();
+          // Dashed horizontal line
           ctx.beginPath();
           ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = rColor;
+          ctx.strokeStyle = isProfit ? "rgba(0,212,170,0.70)" : "rgba(255,95,109,0.70)";
           ctx.lineWidth = 2;
           ctx.moveTo(area.left, yPx);
           ctx.lineTo(area.right, yPx);
           ctx.stroke();
           ctx.setLineDash([]);
+          // Right-side pill: "Closed +₹X"
           ctx.font = "bold 10px 'Inter', sans-serif";
           const rtw = ctx.measureText(rLabel).width;
-          const rlx = area.right - rtw - 8;
-          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
-          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 11, rtw + 8, 14, 3);
-          else ctx.rect(rlx - 4, yPx - 11, rtw + 8, 14);
+          const rlx = area.right - rtw - 12;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 12, rtw + 8, 15, 3);
+          else ctx.rect(rlx - 4, yPx - 12, rtw + 8, 15);
+          ctx.fillStyle = rColorDim;
           ctx.fill();
           ctx.fillStyle = rColor;
           ctx.fillText(rLabel, rlx, yPx - 1);
-          ctx.font = "600 9px 'Inter', sans-serif";
+          // Left-side pill: "Realized"
+          ctx.font = "700 9px 'Inter', sans-serif";
           const rsw = ctx.measureText("Realized").width;
-          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
-          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 11, rsw + 8, 14, 3);
-          else ctx.rect(area.left, yPx - 11, rsw + 8, 14);
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 12, rsw + 8, 15, 3);
+          else ctx.rect(area.left, yPx - 12, rsw + 8, 15);
+          ctx.fillStyle = rColorDim;
           ctx.fill();
           ctx.fillStyle = rColor;
           ctx.fillText("Realized", area.left + 4, yPx - 1);
@@ -168,18 +174,50 @@ function drawBearCallPayoff(canvasId, shortStrike, longStrike, netCreditPerUnit,
         }
       }
 
+      // Exit spot vertical line (where NIFTY closed on the session date)
+      let exitXPx = null;
+      if (chart._exitSpot != null) {
+        exitXPx = xScale.getPixelForValue(chart._exitSpot);
+        if (exitXPx >= area.left && exitXPx <= area.right) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = "rgba(154,176,204,0.75)";
+          ctx.lineWidth = 1.5;
+          ctx.moveTo(exitXPx, area.top);
+          ctx.lineTo(exitXPx, area.bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // Dot on the payoff curve at exit spot
+          const pnlAtExit = payoffAt(chart._exitSpot);
+          const exitDotY = yScale.getPixelForValue(pnlAtExit);
+          ctx.beginPath();
+          ctx.arc(exitXPx, exitDotY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(154,176,204,0.90)";
+          ctx.fill();
+          ctx.strokeStyle = isLight ? "rgba(255,255,255,0.70)" : "rgba(3,7,18,0.60)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
       // Now place labels with collision detection (sorted left→right)
       ctx.font = "bold 10px 'Inter', sans-serif";
       const ROW_H = 13; // height of one label row
       const PAD   = 3;  // horizontal gap from line
 
-      // Collect all label candidates (key levels + spot)
+      // Collect all label candidates (key levels + spot + exit)
       const _labelCandidates = _levels
         .filter(lv => lv.xPx != null && lv.xPx >= area.left && lv.xPx <= area.right)
         .map(lv => ({ xPx: lv.xPx, color: lv.color, text: lv.label }));
 
       if (spotXPx != null && spotXPx >= area.left && spotXPx <= area.right) {
         _labelCandidates.push({ xPx: spotXPx, color: "#f5a623", text: isLive ? "Live" : "Spot" });
+      }
+      if (exitXPx != null && exitXPx >= area.left && exitXPx <= area.right) {
+        const exitLabel = chart._exitTime ? `Exit ${chart._exitTime}` : "Exit";
+        _labelCandidates.push({ xPx: exitXPx, color: "rgba(154,176,204,1.0)", text: exitLabel });
       }
 
       _labelCandidates.sort((a, b) => a.xPx - b.xPx);
@@ -485,32 +523,38 @@ function drawMultiSpreadPayoff(canvasId, spreads, currentSpot, isLive = false) {
         const yPx = yScale.getPixelForValue(rPnl);
         if (yPx >= area.top && yPx <= area.bottom) {
           const isProfit = rPnl >= 0;
-          const rColor = isProfit ? "rgba(0,212,170,0.90)" : "rgba(255,95,109,0.90)";
+          const rColor = isProfit ? "rgba(0,212,170,1.0)" : "rgba(255,95,109,1.0)";
+          const rColorDim = isProfit ? "rgba(0,212,170,0.28)" : "rgba(255,95,109,0.28)";
           const sign   = isProfit ? "+" : "−";
           const rLabel = `Closed ${sign}₹${Math.abs(rPnl).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
           ctx.save();
+          // Dashed horizontal line
           ctx.beginPath();
           ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = rColor;
+          ctx.strokeStyle = isProfit ? "rgba(0,212,170,0.70)" : "rgba(255,95,109,0.70)";
           ctx.lineWidth = 2;
           ctx.moveTo(area.left, yPx);
           ctx.lineTo(area.right, yPx);
           ctx.stroke();
           ctx.setLineDash([]);
+          // Right-side pill: "Closed +₹X"
           ctx.font = "bold 10px 'Inter', sans-serif";
           const rtw = ctx.measureText(rLabel).width;
-          const rlx = area.right - rtw - 8;
-          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
-          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 11, rtw + 8, 14, 3);
-          else ctx.rect(rlx - 4, yPx - 11, rtw + 8, 14);
+          const rlx = area.right - rtw - 12;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(rlx - 4, yPx - 12, rtw + 8, 15, 3);
+          else ctx.rect(rlx - 4, yPx - 12, rtw + 8, 15);
+          ctx.fillStyle = rColorDim;
           ctx.fill();
           ctx.fillStyle = rColor;
           ctx.fillText(rLabel, rlx, yPx - 1);
-          ctx.font = "600 9px 'Inter', sans-serif";
+          // Left-side pill: "Realized"
+          ctx.font = "700 9px 'Inter', sans-serif";
           const rsw = ctx.measureText("Realized").width;
-          ctx.fillStyle = isProfit ? "rgba(0,212,170,0.18)" : "rgba(255,95,109,0.18)";
-          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 11, rsw + 8, 14, 3);
-          else ctx.rect(area.left, yPx - 11, rsw + 8, 14);
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(area.left, yPx - 12, rsw + 8, 15, 3);
+          else ctx.rect(area.left, yPx - 12, rsw + 8, 15);
+          ctx.fillStyle = rColorDim;
           ctx.fill();
           ctx.fillStyle = rColor;
           ctx.fillText("Realized", area.left + 4, yPx - 1);
@@ -587,6 +631,35 @@ function drawMultiSpreadPayoff(canvasId, spreads, currentSpot, isLive = false) {
           ctx.fill();
           ctx.restore();
           _labelCandidates.push({ xPx: spotXPx, color: "#f5a623", text: isLive ? "Live" : "Spot" });
+        }
+      }
+
+      // Exit spot vertical line
+      let exitXPx = null;
+      if (chart._exitSpot != null) {
+        exitXPx = xScale.getPixelForValue(chart._exitSpot);
+        if (exitXPx >= area.left && exitXPx <= area.right) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = "rgba(154,176,204,0.75)";
+          ctx.lineWidth = 1.5;
+          ctx.moveTo(exitXPx, area.top);
+          ctx.lineTo(exitXPx, area.bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          const pnlAtExit = combinedPayoffAt(chart._exitSpot);
+          const exitDotY = yScale.getPixelForValue(pnlAtExit);
+          ctx.beginPath();
+          ctx.arc(exitXPx, exitDotY, 5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(154,176,204,0.90)";
+          ctx.fill();
+          ctx.strokeStyle = isLight ? "rgba(255,255,255,0.70)" : "rgba(3,7,18,0.60)";
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.restore();
+          const exitLabel = chart._exitTime ? `Exit ${chart._exitTime}` : "Exit";
+          _labelCandidates.push({ xPx: exitXPx, color: "rgba(154,176,204,1.0)", text: exitLabel });
         }
       }
 

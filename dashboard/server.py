@@ -15,7 +15,7 @@ import traceback
 from pathlib import Path
 
 import sys
-from flask import Flask, Response, jsonify, send_from_directory
+from flask import Flask, Response, jsonify, request, send_from_directory
 
 # ---------------------------------------------------------------------------
 # Engine import  (server.py lives inside dashboard/, add it to path)
@@ -357,6 +357,30 @@ def nifty_spot():
         if _nifty_cache["data"]:
             return jsonify({**_nifty_cache["data"], "stale": True})
         return jsonify({"spot": None, "error": str(exc)})
+
+
+@app.route("/api/nifty_at")
+def nifty_at():
+    """Return NIFTY daily close for a given date (best proxy for exit spot when intraday data unavailable)."""
+    date_str = request.args.get("date")
+    if not date_str:
+        return jsonify({"spot": None}), 400
+    try:
+        import yfinance as yf
+        from datetime import datetime, timedelta
+        end_date = (datetime.strptime(date_str, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+        hist = yf.download("^NSEI", start=date_str, end=end_date, interval="1d",
+                           progress=False, auto_adjust=True)
+        if hist.empty:
+            return jsonify({"spot": None}), 200
+        close = hist["Close"]
+        if hasattr(close, "columns"):
+            close = close.iloc[:, 0]
+        spot = float(close.iloc[-1])
+        return jsonify({"spot": round(spot, 2)})
+    except Exception as exc:
+        log.warning("nifty_at error: %s", exc)
+        return jsonify({"spot": None}), 200
 
 
 # ---------------------------------------------------------------------------
