@@ -1,0 +1,84 @@
+.sidebar-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 7px;
+}
+.metric-row:last-child { margin-bottom: 0; }
+
+.metric-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.metric-value.green { color: var(--green); }
+.metric-value.red { color: var(--red); }
+.metric-value.gold { color: var(--gold); }
+
+.total-pnl-block {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.total-pnl-block .big-num {
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.total-pnl-block .big-num.green { color: var(--green); }
+.total-pnl-block .big-num.red { color: var(--red); }
+.total-pnl-block .sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* Month buttons */
+.month-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: var(--font);
+  transition: background 0.15s, border-color 0.15s;
+}
+.month-btn:last-child { margin-bottom: 0; }
+.month-btn:hover { background: var(--surface2); border-color: var(--border2); }
+.month-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+
+.month-btn .month-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.month-btn .month-pnl { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.month-btn .month-pnl.green { color: var(--green); }
+.month-btn .month-pnl.red { color: var(--red); }

@@ -219,6 +219,11 @@ def index():
     return send_from_directory(str(_STATIC_DIR), "index.html")
 
 
+@app.route("/<path:filename>")
+def static_files(filename):
+    return send_from_directory(str(_STATIC_DIR), filename)
+
+
 @app.route("/api/strategies")
 def list_strategies():
     _ensure_strategies_fresh()

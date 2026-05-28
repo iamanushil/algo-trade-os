@@ -1,0 +1,261 @@
+"use strict";
+
+// ── Signal ────────────────────────────────────────────────────
+let signalRefreshTimer = null;
+
+async function loadSignal(strategyId) {
+  const section = document.getElementById("signal-section");
+  if (!section) return;
+
+  // Show skeleton while loading
+  renderSignalSkeleton(section);
+
+  try {
+    const data = await apiFetch(`/api/strategies/${strategyId}/signal`);
+    renderSignalData(section, data);
+  } catch (err) {
+    renderSignalError(section, err.message);
+  }
+}
+
+function renderSignalSkeleton(section) {
+  section.innerHTML = `
+    <div class="signal-card">
+      <div class="signal-card-header">
+        <span class="signal-card-title">Next Signal</span>
+        <div class="signal-refresh" style="margin-left:auto;">
+          <span class="signal-updated text-muted">Loading…</span>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        <div class="signal-top-row">
+          <div class="skeleton signal-skeleton-badge"></div>
+          <div style="flex:1;padding-top:4px;">
+            <div class="skeleton skeleton-line" style="width:85%;"></div>
+            <div class="skeleton skeleton-line" style="width:60%;"></div>
+          </div>
+        </div>
+        <div class="skeleton skeleton-line" style="width:100%;height:42px;border-radius:7px;"></div>
+        <div class="signal-meta">
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+          <div class="skeleton skeleton-line" style="height:48px;border-radius:6px;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSignalData(section, d) {
+  const action = d.action || "WAIT";
+  const updated = d.updated_at ? (() => {
+    const dt = new Date(d.updated_at);
+    return dt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) + " IST";
+  })() : "—";
+
+  const spotChangeStr = d.spot_change_pct != null
+    ? (d.spot_change_pct >= 0 ? "+" : "") + d.spot_change_pct.toFixed(2) + "%"
+    : "";
+  const spotStr = d.spot != null
+    ? "₹" + d.spot.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "—";
+
+  const trendCls = (d.trend || "").toLowerCase();
+  const trendDisplay = d.trend || "—";
+  const pcrStr = d.pcr != null ? d.pcr.toFixed(2) : "—";
+  const maxPainStr = d.max_pain != null ? "₹" + d.max_pain.toLocaleString("en-IN") : "—";
+  const entryWindow = d.entry_window || "—";
+
+  const ss = d.suggested_spread;
+  const hasSpread = ss && ss.short_strike && ss.long_strike;
+  const fmtR = v => "₹" + Math.abs(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Build trade ticket HTML
+  let tradeTicketHTML = "";
+  if (hasSpread) {
+    const shortStr  = ss.short_strike.toLocaleString("en-IN");
+    const longStr   = ss.long_strike.toLocaleString("en-IN");
+    const shortPx   = ss.short_premium != null ? `@ <strong>₹${ss.short_premium.toFixed(2)}</strong>` : "";
+    const longPx    = ss.long_premium  != null ? `@ <strong>₹${ss.long_premium.toFixed(2)}</strong>`  : "";
+    const lotsStr   = ss.lot_size ? `${ss.lot_size} lots` : "";
+    tradeTicketHTML = `
+      <div class="signal-section-label">Suggested Spread</div>
+      <div class="trade-ticket">
+        <div class="trade-ticket-leg">
+          <span class="trade-ticket-action sell">SELL</span>
+          <span class="trade-ticket-strike">${shortStr} CE</span>
+          <span class="trade-ticket-role">Short Leg</span>
+          ${shortPx ? `<span class="trade-ticket-price">${shortPx}</span>` : ""}
+        </div>
+        <div class="trade-ticket-sep"></div>
+        <div class="trade-ticket-leg">
+          <span class="trade-ticket-action buy">BUY</span>
+          <span class="trade-ticket-strike">${longStr} CE</span>
+          <span class="trade-ticket-role">Long Leg</span>
+          ${longPx ? `<span class="trade-ticket-price">${longPx}</span>` : ""}
+        </div>
+        ${lotsStr ? `<div class="trade-ticket-qty">${lotsStr}</div>` : ""}
+      </div>
+    `;
+  }
+
+  // Build P&L block HTML
+  let pnlBlockHTML = "";
+  let unavailNote = "";
+  if (hasSpread) {
+    const netCreditTotal = ss.net_credit_total ?? (ss.net_credit != null && ss.lot_size ? ss.net_credit * ss.lot_size : null);
+    const maxProfitHTML  = ss.max_profit  != null ? `<div class="signal-pnl-block-value profit">+${fmtR(ss.max_profit)}</div>`  : `<div class="signal-pnl-block-value">—</div>`;
+    const maxLossHTML    = ss.max_loss    != null ? `<div class="signal-pnl-block-value loss">−${fmtR(ss.max_loss)}</div>`      : `<div class="signal-pnl-block-value">—</div>`;
+    const netCrHTML      = netCreditTotal != null ? `<div class="signal-pnl-block-value">+${fmtR(netCreditTotal)}</div>` : `<div class="signal-pnl-block-value">—</div>`;
+    const bkHTML         = ss.breakeven   != null ? `<div class="signal-pnl-block-value">${ss.breakeven.toLocaleString("en-IN")}</div>` : `<div class="signal-pnl-block-value">—</div>`;
+
+    if (ss.net_credit == null) {
+      unavailNote = `<div class="signal-unavail-note">Premiums unavailable (market closed) — P&amp;L and payoff are theoretical estimates</div>`;
+    }
+
+    pnlBlockHTML = `
+      <div class="signal-pnl-block">
+        <div class="signal-pnl-block-grid">
+          <div>
+            <div class="signal-pnl-block-label">Max Profit</div>
+            ${maxProfitHTML}
+          </div>
+          <div>
+            <div class="signal-pnl-block-label">Max Loss</div>
+            ${maxLossHTML}
+          </div>
+          <div>
+            <div class="signal-pnl-block-label">Net Credit</div>
+            ${netCrHTML}
+          </div>
+          <div>
+            <div class="signal-pnl-block-label">Breakeven</div>
+            ${bkHTML}
+          </div>
+        </div>
+      </div>
+      ${unavailNote}
+    `;
+  }
+
+  const actionColors = { ENTER: "#22c55e", MONITOR: "#f59e0b", WAIT: "#ef4444" };
+  const borderColor = actionColors[action] || "#3b82f6";
+
+  section.innerHTML = `
+    <div class="signal-card" id="signal-card-inner" style="border-left-color:${borderColor};">
+      <div class="signal-card-header">
+        <span class="signal-card-title" style="text-transform:uppercase;letter-spacing:0.5px;">Next Signal</span>
+        <div class="signal-refresh">
+          <span class="signal-updated" id="signal-updated-ts">Updated ${updated}</span>
+          <button class="signal-refresh-btn" id="signal-refresh-btn" title="Refresh signal">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        ${d.error ? `<div class="signal-unavailable">Signal unavailable — ${d.error}</div>` : ""}
+        <div class="signal-top-row">
+          <span class="signal-badge ${action}">${action}</span>
+          <div class="signal-reason">${d.action_reason || "No reason provided."}</div>
+        </div>
+        ${tradeTicketHTML}
+        ${hasSpread ? `
+        <div class="signal-bottom-split">
+          <div class="signal-bottom-left">
+            <div class="signal-section-label">Expected P&amp;L</div>
+            ${pnlBlockHTML}
+          </div>
+          <div class="signal-bottom-right">
+            <div class="signal-section-label">Payoff at Expiry</div>
+            <div class="payoff-canvas-wrap" style="margin-top:0;">
+              <canvas id="signal-payoff-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        ` : ""}
+        <div class="signal-market-bar">
+          <div class="signal-market-item">
+            <span class="signal-market-label">Spot (NIFTY)</span>
+            <span class="signal-market-value">${spotStr}${spotChangeStr ? `<span style="font-size:10px;font-weight:500;color:var(--muted);margin-left:4px;">${spotChangeStr}</span>` : ""}</span>
+          </div>
+          <div class="signal-market-sep"></div>
+          <div class="signal-market-item">
+            <span class="signal-market-label">Trend</span>
+            <span class="signal-market-value ${trendCls}">${trendDisplay}</span>
+          </div>
+          <div class="signal-market-sep"></div>
+          <div class="signal-market-item">
+            <span class="signal-market-label">PCR</span>
+            <span class="signal-market-value">${pcrStr}</span>
+          </div>
+          <div class="signal-market-sep"></div>
+          <div class="signal-market-item">
+            <span class="signal-market-label">Max Pain</span>
+            <span class="signal-market-value">${maxPainStr}</span>
+          </div>
+          <div class="signal-market-sep"></div>
+          <div class="signal-market-item">
+            <span class="signal-market-label">Entry Window</span>
+            <span class="signal-market-value">${entryWindow}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Wire up refresh button
+  const refreshBtn = document.getElementById("signal-refresh-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (state.activeStrategyId) {
+        refreshBtn.disabled = true;
+        loadSignal(state.activeStrategyId).finally(() => {
+          const btn = document.getElementById("signal-refresh-btn");
+          if (btn) btn.disabled = false;
+        });
+      }
+    });
+  }
+
+  if (hasSpread) {
+    const nc  = ss.net_credit ?? ((ss.long_strike - ss.short_strike) * 0.10);
+    const qty = ss.lot_size  ?? 65;
+    const sp  = d.spot ?? ss.short_strike;
+    setTimeout(() => drawBearCallPayoff("signal-payoff-chart", ss.short_strike, ss.long_strike, nc, qty, sp), 0);
+  }
+  state.signalData = d;
+}
+
+function renderSignalError(section, msg) {
+  section.innerHTML = `
+    <div class="signal-card">
+      <div class="signal-card-header">
+        <span class="signal-card-title">Next Signal</span>
+        <div class="signal-refresh">
+          <button class="signal-refresh-btn" id="signal-refresh-btn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="signal-card-body">
+        <div class="signal-unavailable">Signal unavailable — ${msg}</div>
+      </div>
+    </div>
+  `;
+  const refreshBtn = document.getElementById("signal-refresh-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (state.activeStrategyId) loadSignal(state.activeStrategyId);
+    });
+  }
+}
+
+function scheduleSignalRefresh(strategyId) {
+  if (signalRefreshTimer) clearInterval(signalRefreshTimer);
+  signalRefreshTimer = setInterval(() => {
+    const section = document.getElementById("signal-section");
+    if (section && state.activeStrategyId === strategyId) {
+      loadSignal(strategyId);
+    } else {
+      clearInterval(signalRefreshTimer);
+    }
+  }, 300000); // 5 minutes
+}

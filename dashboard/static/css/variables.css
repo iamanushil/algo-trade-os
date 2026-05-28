@@ -1,0 +1,24 @@
+:root {
+  --bg: #060a13;
+  --surface: #0c1422;
+  --surface2: #101b2e;
+  --surface3: #162338;
+  --border: #1c2d45;
+  --border2: #243659;
+  --text: #e4eaf6;
+  --text2: #9ab0cc;
+  --muted: #4e6380;
+  --accent: #5b8ef0;
+  --accent-dim: rgba(91,142,240,0.12);
+  --accent-glow: rgba(91,142,240,0.2);
+  --green: #00d4aa;
+  --green-bg: rgba(0,212,170,0.08);
+  --green-border: rgba(0,212,170,0.25);
+  --red: #ff5f6d;
+  --red-bg: rgba(255,95,109,0.08);
+  --red-border: rgba(255,95,109,0.25);
+  --gold: #f5a623;
+  --gold-bg: rgba(245,166,35,0.08);
+  --gold-border: rgba(245,166,35,0.25);
+  --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}

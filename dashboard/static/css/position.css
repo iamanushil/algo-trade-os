@@ -1,0 +1,201 @@
+/* ── Active Position Panel ── */
+#active-position-panel {
+  border-top: 2px solid var(--gold);
+}
+
+.legs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.leg-row {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  transition: border-color 0.15s;
+}
+.leg-row:hover { border-color: var(--muted); }
+
+.leg-strike {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 90px;
+  font-variant-numeric: tabular-nums;
+}
+
+.leg-type {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+.leg-type.CE { background: rgba(91,142,240,0.12); color: #7aabff; border: 1px solid rgba(91,142,240,0.3); }
+.leg-type.PE { background: rgba(255,95,109,0.1); color: #ff8f9a; border: 1px solid rgba(255,95,109,0.3); }
+
+.role-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.role-badge.SHORT_LEG, .role-badge.SHORT_LEG_ADJ {
+  background: rgba(255,95,109,0.1);
+  border: 1px solid rgba(255,95,109,0.3);
+  color: #ff8f9a;
+}
+.role-badge.LONG_LEG, .role-badge.LONG_LEG_ADJ {
+  background: rgba(0,212,170,0.1);
+  border: 1px solid rgba(0,212,170,0.25);
+  color: #00d4aa;
+}
+
+.leg-detail {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+  font-weight: 500;
+}
+.leg-detail strong { color: var(--text2); font-weight: 600; }
+
+/* Position metrics */
+.pos-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.pos-metric-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 12px 16px;
+}
+
+.pos-metric-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.pos-metric-value {
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.pos-metric-value.green { color: var(--green); }
+.pos-metric-value.red { color: var(--red); }
+.pos-metric-value.gold { color: var(--gold); }
+
+/* ── Payoff diagram ── */
+.panel-split { display: flex; gap: 16px; align-items: flex-start; }
+.panel-split-left { flex: 1; min-width: 0; }
+.panel-split-right { width: 360px; flex-shrink: 0; min-width: 0; }
+@media (max-width: 1100px) { .panel-split { flex-direction: column; } .panel-split-right { width: 100%; } }
+
+.payoff-canvas-wrap {
+  margin-top: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 16px 8px;
+  position: relative;
+}
+.payoff-canvas-wrap canvas { display: block; width: 100% !important; height: 200px !important; }
+
+/* ── Leg P&L bar chart ── */
+.leg-bars { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.leg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.leg-bar-label { width: 120px; flex-shrink: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.leg-bar-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; position: relative; }
+.leg-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.leg-bar-fill.profit { background: var(--green); }
+.leg-bar-fill.loss   { background: var(--red); }
+.leg-bar-value { width: 88px; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.leg-bar-value.green { color: var(--green); }
+.leg-bar-value.red   { color: var(--red); }
+
+/* ── Trade Detail Panel ── */
+#trade-detail-panel .panel-header {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-expiry {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.detail-session-pnl {
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.detail-session-pnl.green { color: var(--green); }
+.detail-session-pnl.red { color: var(--red); }
+
+/* ── Table ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  padding: 8px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th:first-child { text-align: left; }
+
+.data-table td {
+  padding: 11px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.data-table td:first-child { text-align: left; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(91,142,240,0.04); }
+
+.td-strike { font-weight: 700; }
+.td-expiry { color: var(--muted); font-size: 12px; font-weight: 500; }
+.td-time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.td-time-h { font-size: 10px; }
+.td-green { color: var(--green); font-weight: 600; }
+.td-red { color: var(--red); font-weight: 600; }
+
+.no-detail-msg {
+  text-align: center;
+  color: var(--muted);
+  padding: 32px;
+  font-size: 13px;
+  font-weight: 500;
+}
